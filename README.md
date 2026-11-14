@@ -24,9 +24,9 @@ LeafGuard classifies photos of tomato, potato and apple leaves into 10 healthy o
 | Packaging | **Docker, Docker Compose** | `Dockerfile`, `frontend/Dockerfile`, `docker-compose.yml` |
 
 **Results:**
-- Model v2 (MobileNetV2, fine-tuned) has test **macro-F1 0.966** and accuracy 0.965.
+- Production model v5 (MobileNetV2, fine-tuned with field-condition augmentation) has test **macro-F1 0.962**. It is robust to field photos: F1 is **0.93 on dark** and **0.88 on blurry** test photos, up from 0.84 and 0.20 for the previous model.
 - p95 `/predict` latency is **158 ms** on CPU, including the heatmap.
-- 52/52 unit and integration tests pass.
+- 59/59 unit and integration tests pass.
 
 ## Documentation
 | Doc | Purpose |
@@ -58,6 +58,13 @@ docker compose up -d --build
 | Trainer | http://localhost:8001/status |
 
 The first start needs an MLflow registry with a `leafguard@production` model. Run the pipeline once (below, or click **Run pipeline now** in the console).
+
+## Getting the data without the DVC remote
+The DVC remote is a local folder, so a fresh clone can rebuild the exact dataset from the public PlantVillage repo instead:
+```bash
+python scripts/download_data.py   # downloads the 2,852 files listed in data/plantvillage_subset.txt
+dvc status data/raw.dvc           # "up to date" proves the files are byte-identical to the versioned dataset
+```
 
 ## Develop locally (no Docker)
 ```bash

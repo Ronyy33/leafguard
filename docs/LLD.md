@@ -58,6 +58,7 @@ The machine-readable contract is [`openapi.json`](openapi.json), exported from t
 | `prediction_id` | string (32 hex) | Use this when sending feedback |
 | `label` / `display_name` | string | Class id / human-readable name |
 | `is_healthy` | bool | The label ends with `healthy` |
+| `looks_like_leaf` | bool | `false` if under 0.5% of the pixels are leaf-coloured (HSV hue 10°–100°, saturated, not black). The UI then shows a neutral ❓ verdict and a warning. |
 | `confidence` | float [0,1] | Top-1 softmax probability |
 | `low_confidence` | bool | `confidence < LOW_CONFIDENCE_THRESHOLD` (0.6) |
 | `top3` | ClassScore[3] | The three most likely classes |
@@ -167,6 +168,7 @@ The signature is inferred at log time (`mlflow.models.infer_signature`) and stor
 | `leafguard_model_server_up` | gauge | — |
 | `leafguard_retrain_requests_total` | counter | source, accepted |
 | `leafguard_labelled_samples_total` | counter | — |
+| `leafguard_not_leaf_total` | counter | — |
 | `leafguard_mlflow_up` | gauge | — |
 | `leafguard_pipeline_runs_total` | counter (trainer) | status |
 | `leafguard_pipeline_running` | gauge (trainer) | — |

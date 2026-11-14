@@ -69,13 +69,51 @@ def robustness(model: torch.nn.Module, X: np.ndarray, y: np.ndarray) -> dict[str
     }
 
 
-def current_production_f1(client: MlflowClient) -> float:
-    """Test macro-F1 of the model currently aliased @production (-1 if none)."""
+ROBUST_KEYS = ("test_macro_f1", "test_dark_macro_f1", "test_blur_macro_f1")
+
+
+def overall_score(m: dict[str, float]) -> float:
+    """Mean F1 over clean, dark and blurry test photos (a metric missing = never measured = 0)."""
+    return float(np.mean([m.get(k, 0.0) for k in ROBUST_KEYS]))
+
+
+def current_production_metrics(client: MlflowClient) -> dict[str, float]:
+    """Test metrics of the model currently aliased @production ({} if none)."""
     try:
         mv = client.get_model_version_by_alias(MODEL_NAME, ALIAS)
-        return float(client.get_run(mv.run_id).data.metrics.get("test_macro_f1", -1))
+        return dict(client.get_run(mv.run_id).data.metrics)
     except Exception:
-        return -1.0
+        return {}
+
+
+def should_promote(
+    new: dict[str, float], prod: dict[str, float], min_f1: float, max_regression: float
+) -> tuple[bool, str]:
+    """Promotion gate.
+
+    1. clean test macro-F1 >= min_f1                          (absolute quality bar)
+    2. clean F1 >= production clean F1 - max_regression       (no meaningful drop on normal photos)
+    3. overall score (clean + dark + blur) >= production's    (better or equal under field conditions)
+    """
+    f1 = new["test_macro_f1"]
+    if f1 < min_f1:
+        return False, f"clean F1 {f1:.4f} < gate {min_f1:.2f}"
+    if not prod:
+        return True, "no production model yet"
+    if f1 < prod.get("test_macro_f1", 0.0) - max_regression:
+        return False, f"clean F1 {f1:.4f} dropped more than {max_regression} below production"
+    s_new, s_prod = overall_score(new), overall_score(prod)
+    if s_new < s_prod:
+        return False, f"overall score {s_new:.4f} < production {s_prod:.4f}"
+    return True, f"overall score {s_new:.4f} >= production {s_prod:.4f}"
+
+
+def register_once(client: MlflowClient, run_id: str):
+    """Reuse the registry version of this run if it exists (re-running evaluate must not duplicate it)."""
+    for v in client.search_model_versions(f"name='{MODEL_NAME}'"):
+        if v.run_id == run_id:
+            return v
+    return mlflow.register_model(f"runs:/{run_id}/model", MODEL_NAME)
 
 
 def main() -> None:
@@ -110,22 +148,25 @@ def main() -> None:
 
     mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5000"))
     client = MlflowClient()
-    prod_f1 = current_production_f1(client)
+    prod = current_production_metrics(client)
+    new = {"test_macro_f1": f1, **robust}
 
     with mlflow.start_run(run_id=run_id):
         mlflow.log_metrics({"test_macro_f1": f1, "test_accuracy": acc, "test_min_class_recall": min_recall, **robust})
         mlflow.log_artifact("reports/confusion_matrix.png", artifact_path="eval")
         mlflow.log_artifact("reports/classification_report.json", artifact_path="eval")
-        mv = mlflow.register_model(f"runs:/{run_id}/model", MODEL_NAME)
+        mlflow.log_metric("test_overall_score", overall_score(new))
+        mv = register_once(client, run_id)
 
-    gate = params["evaluate"]["min_macro_f1"]
-    promoted = f1 >= gate and f1 >= prod_f1
+    ev = params["evaluate"]
+    promoted, reason = should_promote(new, prod, ev["min_macro_f1"], ev.get("max_clean_regression", 0.0))
     client.set_model_version_tag(MODEL_NAME, mv.version, "test_macro_f1", f"{f1:.4f}")
+    client.set_model_version_tag(MODEL_NAME, mv.version, "gate", reason)
     if promoted:
         client.set_registered_model_alias(MODEL_NAME, ALIAS, mv.version)
-        logger.info("promoted v%s to @%s (F1 %.4f >= gate %.2f, prev %.4f)", mv.version, ALIAS, f1, gate, prod_f1)
+        logger.info("promoted v%s to @%s: %s", mv.version, ALIAS, reason)
     else:
-        logger.warning("v%s NOT promoted (F1 %.4f, gate %.2f, prod %.4f)", mv.version, f1, gate, prod_f1)
+        logger.warning("v%s NOT promoted: %s", mv.version, reason)
 
     write_json(
         {
@@ -135,7 +176,10 @@ def main() -> None:
             **{k: round(v, 4) for k, v in robust.items()},
             "model_version": int(mv.version),
             "promoted": promoted,
-            "previous_production_f1": round(prod_f1, 4),
+            "test_overall_score": round(overall_score(new), 4),
+            "gate_reason": reason,
+            "previous_production_f1": round(prod.get("test_macro_f1", -1.0), 4),
+            "previous_production_score": round(overall_score(prod), 4) if prod else -1.0,
         },
         "reports/eval_metrics.json",
     )

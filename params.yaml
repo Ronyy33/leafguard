@@ -23,6 +23,7 @@ train:
 
 evaluate:
   min_macro_f1: 0.90       # acceptance criterion / promotion gate
+  max_clean_regression: 0.01  # allowed drop in clean F1 if dark/blur robustness improves
 
 monitoring:
   brightness_z_threshold: 3.0   # drift alert if |z| of rolling brightness exceeds this

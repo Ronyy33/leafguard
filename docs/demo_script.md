@@ -92,7 +92,7 @@ Walk through `docs/`:
 - architecture
 - HLD
 - LLD with the OpenAPI spec
-- test plan and report: `dvc repro test` gives 52/52
+- test plan and report: `dvc repro test` gives 59/59
 - user manual
 
 Run `flake8` to show it's clean. Show the OO modules (`ModelService`, `RuntimeMonitor`, `Trainer`), the logging and the exception handlers.

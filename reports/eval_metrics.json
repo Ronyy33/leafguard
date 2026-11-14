@@ -1,8 +1,13 @@
 {
-  "test_macro_f1": 0.9662,
-  "test_accuracy": 0.965,
-  "test_min_class_recall": 0.8444,
-  "model_version": 4,
+  "test_macro_f1": 0.9624,
+  "test_accuracy": 0.9603,
+  "test_min_class_recall": 0.9111,
+  "test_dark_macro_f1": 0.9334,
+  "test_blur_macro_f1": 0.8785,
+  "model_version": 5,
   "promoted": true,
-  "previous_production_f1": 0.9662
+  "test_overall_score": 0.9247,
+  "gate_reason": "overall score 0.9247 >= production 0.6679",
+  "previous_production_f1": 0.9662,
+  "previous_production_score": 0.6679
 }

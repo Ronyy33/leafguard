@@ -31,15 +31,15 @@
 
 | ID | Criterion | Threshold | Measured | Result |
 |---|---|---|---|---|
-| AC1 | Test-set macro-F1 | ≥ 0.90 | **0.966** (model v2) | ✅ |
-| AC2 | Minimum per-class recall | ≥ 0.80 | **0.844** (Tomato Early blight) | ✅ |
+| AC1 | Test-set macro-F1 | ≥ 0.90 | **0.962** (model v5; v2 was 0.966) | ✅ |
+| AC2 | Minimum per-class recall | ≥ 0.80 | **0.911** (model v5) | ✅ |
 | AC3 | p95 `/predict` latency, with heatmap, CPU, sequential | < 200 ms | **158 ms** (60 requests) | ✅ |
 | AC4 | API 5xx error rate under normal traffic | < 1 % | **0 %** (0 of 160 requests) | ✅ |
 | AC5 | Invalid inputs rejected with a clear 4xx message | 100 % | 415 / 400 / 413 / 422 verified | ✅ |
 | AC6 | Brightness drift detected within one window (50 uploads) | \|z\| > 3 | **z = −25.7** after 40 dark uploads | ✅ |
 | AC7 | A worse model is never promoted | gate holds | v1 (F1 0.881) rejected; v2 (0.966) promoted | ✅ |
 | AC8 | Data validation rejects bad files and keeps good ones | bad ≤ 5 % | 1 duplicate dropped, 2,851 kept | ✅ |
-| AC9 | All unit and integration tests pass | 100 % | **52 / 52** | ✅ |
+| AC9 | All unit and integration tests pass | 100 % | **59 / 59** | ✅ |
 | AC10 | Full stack starts with one command and E2E tests pass | 100 % | **7 / 7**, closed-loop retrain verified | ✅ |
 
 ## 4. Test cases
@@ -76,7 +76,9 @@ The full per-test table is generated on every run at `reports/tests/test_cases.m
 | TC43–46 | Trainer | `test_trainer.py` (4) | Fake pipelines | stage parsing; failure state; single-run lock; cooldown for alerts but not manual |
 | TC47–51 | Feedback import | `test_import_feedback.py` (5) | Encrypted labelled upload; rerun; unknown label; wrong key; no key | imported once as JPEG; idempotent; never creates a class; errors counted, no crash |
 | TC52 | API | `test_feedback_queues_labelled_photo_for_retraining` | Feedback on a stored upload | encrypted copy saved under `FEEDBACK_DIR/<label>/` |
-| TC53–59 | E2E | `tests/e2e/test_stack.py` (7) | Running stack | UI served with config; backend uses the model server; the 3 real samples classified correctly; all Prometheus targets up; registry has a production version |
+| TC53 | API | `test_real_leaf_is_recognised_as_leaf` | Real leaf JPG | `looks_like_leaf = true` |
+| TC54 | API | `test_non_leaf_photo_is_flagged` | Uniform "sky" image | `looks_like_leaf = false`, first warning says it isn't a leaf |
+| TC55–61 | E2E | `tests/e2e/test_stack.py` (7) | Running stack | UI served with config; backend uses the model server; the 3 real samples classified correctly; all Prometheus targets up; registry has a production version |
 
 ## 5. Test report
 
@@ -84,7 +86,7 @@ The full per-test table is generated on every run at `reports/tests/test_cases.m
 
 | Suite | Total | Passed | Failed | Skipped |
 |---|---|---|---|---|
-| Unit + integration | 52 | **52** | 0 | 0 |
+| Unit + integration | 59 | **59** | 0 | 0 |
 | E2E (needs the running stack) | 7 | — | — | 7 (run separately, see below) |
 
 **Performance and drift run** (`scripts/simulate_traffic.py`, local stack, model v2 via `mlflow models serve`):

@@ -1,8 +1,8 @@
 {
-  "tests_total": 59,
-  "tests_passed": 52,
+  "tests_total": 66,
+  "tests_passed": 59,
   "tests_failed": 0,
   "tests_skipped": 7,
   "tests_pass_rate": 1.0,
-  "tests_seconds": 8.98
+  "tests_seconds": 6.68
 }

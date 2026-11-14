@@ -33,7 +33,7 @@ The dot in the top-right corner shows the service status:
    - Use daylight, and avoid dark shade and strong flash.
    - Use a plain background if you can.
    - Hold still so the photo is sharp.
-2. **Choose the photo.** On the *Check a leaf* page, drag the photo onto the dashed box, or click the box and pick the photo. A small preview appears.
+2. **Choose the photo.** On the *Check a leaf* page, drag the photo onto the dashed box, or click the box and pick the photo. **On a phone, tapping the box opens the camera directly.** A small preview appears.
 3. **Click "Check this leaf".** The result appears in about a second.
 4. **Read the result:**
    - A ✅ **green box** means the leaf looks healthy.
@@ -50,6 +50,7 @@ The dot in the top-right corner shows the service status:
 
 | Message | What to do |
 |---|---|
+| ❓ "This photo doesn't look like a plant leaf" | The photo shows mostly sky, paper, a screen or background. Photograph the leaf up close so it fills the frame. |
 | "Photo looks very dark" | Retake it in better light. |
 | "Photo looks blurry" | Hold the phone steady and tap the screen to focus on the leaf. |
 | "The model is not confident" | Retake the photo, or ask an agronomist. |

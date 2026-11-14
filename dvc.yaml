@@ -89,6 +89,7 @@ stages:
       - src/train/evaluate.py
     params:
       - evaluate.min_macro_f1
+      - evaluate.max_clean_regression
     plots:
       - reports/confusion_matrix.png:
           cache: false
