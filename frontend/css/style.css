@@ -134,6 +134,7 @@ select {
 .verdict { display: flex; gap: .9rem; align-items: center; padding: 1rem; border-radius: 12px; margin-bottom: 1rem; }
 .verdict.healthy { background: var(--ok-soft); }
 .verdict.disease { background: var(--danger-soft); }
+.verdict.unknown { background: var(--warn-soft); }
 .verdict .icon { font-size: 2rem; line-height: 1; }
 .verdict h2 { margin: 0; }
 .bar { height: 10px; background: var(--surface-2); border-radius: 99px; overflow: hidden; }

@@ -81,6 +81,17 @@ def test_predict_rejects_too_large(api):
     assert r.status_code == 413
 
 
+def test_real_leaf_is_recognised_as_leaf(api, sample_jpg):
+    assert _predict(api, sample_jpg).json()["looks_like_leaf"] is True
+
+
+def test_non_leaf_photo_is_flagged(api):
+    sky = np.zeros((200, 200, 3), np.uint8)
+    sky[...] = (90, 140, 220)
+    r = _predict(api, png_bytes(sky), ctype="image/png").json()
+    assert r["looks_like_leaf"] is False and "doesn't look like a plant leaf" in r["warnings"][0]
+
+
 def test_dark_photo_warns(api, sample_jpg):
     dark = (np.asarray(Image.open(io.BytesIO(sample_jpg))) * 0.1).astype(np.uint8)
     r = _predict(api, png_bytes(dark), ctype="image/png").json()

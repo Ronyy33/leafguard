@@ -22,6 +22,7 @@ import platform
 import time
 from pathlib import Path
 
+import cv2
 import mlflow
 import numpy as np
 import torch
@@ -30,7 +31,6 @@ from mlflow.models import infer_signature
 from sklearn.metrics import f1_score
 from torch import nn
 from torch.utils.data import DataLoader, Dataset
-from torchvision.transforms import functional as TF
 
 from src.train.model import LeafNet
 from src.utils import get_logger, git_commit, git_dirty, load_params, write_json
@@ -53,22 +53,29 @@ class NpzDataset(Dataset):
         return len(self.y)
 
     def __getitem__(self, i):
-        x = torch.from_numpy(self.X[i]).permute(2, 0, 1).float() / 255.0
+        img = self.X[i]
+        if self.augment and self.field_augment:
+            # field conditions seen in production drift: much darker and out-of-focus photos.
+            # Done with OpenCV on uint8 (not torch ops) - torch convs in forked workers deadlock.
+            if np.random.rand() < 0.3:
+                img = cv2.GaussianBlur(img, (0, 0), sigmaX=0.5 + 2.5 * np.random.rand())
+            if np.random.rand() < 0.4:
+                img = (img.astype(np.float32) * (0.25 + 0.75 * np.random.rand())).astype(np.uint8)
+        x = torch.from_numpy(np.ascontiguousarray(img)).permute(2, 0, 1).float() / 255.0
         if self.augment:
             if torch.rand(1) < 0.5:
                 x = x.flip(2)  # horizontal flip
             if torch.rand(1) < 0.5:
                 x = x.flip(1)  # vertical flip
-            if self.field_augment:
-                # field conditions seen in production drift: much darker photos and out-of-focus photos
-                if torch.rand(1) < 0.4:
-                    x = x * (0.25 + 0.75 * torch.rand(1))
-                if torch.rand(1) < 0.3:
-                    x = TF.gaussian_blur(x, kernel_size=9, sigma=float(0.5 + 2.5 * torch.rand(1)))
-                x = x.clamp(0, 1)
-            else:
-                x = (x * (0.8 + 0.4 * torch.rand(1))).clamp(0, 1)  # brightness jitter
+            if not self.field_augment:
+                x = (x * (0.8 + 0.4 * torch.rand(1))).clamp(0, 1)  # mild brightness jitter
         return x, int(self.y[i])
+
+
+def _worker_init(worker_id: int) -> None:
+    """Per-worker setup: single-threaded OpenCV and a distinct numpy seed for augmentation."""
+    cv2.setNumThreads(0)
+    np.random.seed((torch.initial_seed() + worker_id) % 2**32)
 
 
 def run_epoch(model, loader, loss_fn, optimizer=None):
@@ -109,8 +116,14 @@ def main() -> None:
     labels = json.loads((PROCESSED / "labels.json").read_text())
     train_ds = NpzDataset(PROCESSED / "train.npz", augment=tp["augment"], field_augment=tp.get("field_augment", False))
     val_ds = NpzDataset(PROCESSED / "val.npz")
-    train_dl = DataLoader(train_ds, batch_size=tp["batch_size"], shuffle=True, num_workers=tp["num_workers"])
-    val_dl = DataLoader(val_ds, batch_size=64, num_workers=tp["num_workers"])
+    train_dl = DataLoader(
+        train_ds,
+        batch_size=tp["batch_size"],
+        shuffle=True,
+        num_workers=tp["num_workers"],
+        worker_init_fn=_worker_init,
+    )
+    val_dl = DataLoader(val_ds, batch_size=64, num_workers=tp["num_workers"], worker_init_fn=_worker_init)
 
     model = LeafNet(len(labels), tp["backbone"], pretrained=True, freeze_backbone=tp["freeze_backbone"])
     optimizer = torch.optim.Adam([p for p in model.parameters() if p.requires_grad], lr=tp["lr"])

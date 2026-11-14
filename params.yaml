@@ -18,7 +18,7 @@ train:
   lr: 0.0003
   freeze_backbone: false
   augment: true
-  field_augment: false     # extra dark/blur augmentation for field photos
+  field_augment: true      # extra dark/blur augmentation for field photos
   num_workers: 2
 
 evaluate:

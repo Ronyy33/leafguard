@@ -62,9 +62,15 @@
     lastPrediction = r;
     $("result-empty").hidden = true;
     $("result").hidden = false;
-    $("verdict").className = "verdict " + (r.is_healthy ? "healthy" : "disease");
-    $("verdict-icon").textContent = r.is_healthy ? "✅" : "⚠️";
-    $("verdict-kicker").textContent = r.is_healthy ? "Looks healthy" : "Possible disease detected";
+    if (!r.looks_like_leaf) {
+      $("verdict").className = "verdict unknown";
+      $("verdict-icon").textContent = "❓";
+      $("verdict-kicker").textContent = "This may not be a leaf – result unreliable";
+    } else {
+      $("verdict").className = "verdict " + (r.is_healthy ? "healthy" : "disease");
+      $("verdict-icon").textContent = r.is_healthy ? "✅" : "⚠️";
+      $("verdict-kicker").textContent = r.is_healthy ? "Looks healthy" : "Possible disease detected";
+    }
     $("verdict-label").textContent = r.display_name;
     $("conf-text").textContent = (100 * r.confidence).toFixed(1) + "%";
     requestAnimationFrame(() => { $("conf-bar").style.width = (100 * r.confidence).toFixed(1) + "%"; });

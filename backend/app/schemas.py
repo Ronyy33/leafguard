@@ -18,6 +18,7 @@ class PredictionResponse(BaseModel):
     label: str
     display_name: str
     is_healthy: bool
+    looks_like_leaf: bool = Field(..., description="False if the photo has almost no leaf-coloured pixels")
     confidence: float = Field(..., ge=0, le=1)
     low_confidence: bool = Field(..., description="True if confidence is below the configured threshold")
     top3: list[ClassScore]

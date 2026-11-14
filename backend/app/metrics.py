@@ -47,3 +47,4 @@ MODEL_SERVER_UP = Gauge("leafguard_model_server_up", "1 if the MLflow model serv
 RETRAIN_REQUESTS = Counter("leafguard_retrain_requests_total", "Retrain triggers", ["source", "accepted"])
 LABELLED_SAMPLES = Counter("leafguard_labelled_samples_total", "User-labelled uploads queued for the next retrain")
 MLFLOW_UP = Gauge("leafguard_mlflow_up", "1 if the MLflow tracking server / registry is reachable")
+NOT_LEAF = Counter("leafguard_not_leaf_total", "Uploads that do not look like a leaf")

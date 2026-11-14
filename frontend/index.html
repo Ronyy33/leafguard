@@ -36,9 +36,9 @@
       <label id="dropzone" class="dropzone" tabindex="0" for="file-input">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2M12 4v12M7 9l5-5 5 5"/></svg>
         <strong>Drag a photo here or click to browse</strong>
-        <span class="small muted">JPG, PNG or WEBP · up to 5 MB</span>
+        <span class="small muted">JPG, PNG or WEBP · up to 5 MB · on a phone this opens the camera</span>
       </label>
-      <input id="file-input" class="sr-only" type="file" accept="image/jpeg,image/png,image/webp">
+      <input id="file-input" class="sr-only" type="file" accept="image/jpeg,image/png,image/webp" capture="environment">
       <div id="preview" class="preview-wrap" hidden>
         <img id="preview-img" alt="Selected leaf photo">
         <div>

@@ -24,7 +24,14 @@ from prometheus_client import make_asgi_app
 
 from app import metrics as M
 from app.config import settings
-from app.model_service import InvalidImageError, ModelNotLoadedError, ModelService, display_name
+from app.model_service import (
+    LEAF_PIXEL_MIN,
+    InvalidImageError,
+    ModelNotLoadedError,
+    ModelService,
+    display_name,
+    leaf_pixel_ratio,
+)
 from app.monitor import RuntimeMonitor
 from app.schemas import (
     ClassScore,
@@ -248,6 +255,10 @@ async def predict(
         warnings.append("Photo looks very dark; try better lighting.")
     if quality["blur"] < base.mean["blur"] - 2 * base.std["blur"] and quality["blur"] < 100:
         warnings.append("Photo looks blurry; hold the camera steady and focus on the leaf.")
+    looks_like_leaf = leaf_pixel_ratio(rgb) >= LEAF_PIXEL_MIN
+    if not looks_like_leaf:
+        M.NOT_LEAF.inc()
+        warnings.insert(0, "This photo doesn't look like a plant leaf. The result below is probably meaningless.")
     low = conf < settings.low_confidence_threshold
     if low:
         M.LOW_CONFIDENCE.inc()
@@ -272,6 +283,7 @@ async def predict(
         label=label,
         display_name=display_name(label),
         is_healthy=label.endswith("healthy"),
+        looks_like_leaf=looks_like_leaf,
         confidence=conf,
         low_confidence=low,
         top3=[

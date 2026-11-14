@@ -42,6 +42,21 @@ class ModelNotLoadedError(RuntimeError):
     """No model available (registry empty or unreachable)."""
 
 
+LEAF_PIXEL_MIN = 0.005  # fewer leaf-coloured pixels than this -> probably not a leaf photo
+
+
+def leaf_pixel_ratio(rgb: np.ndarray) -> float:
+    """Share of pixels with leaf-like colour (green..yellow..brown, saturated, not black).
+
+    Measured on 600 dataset photos: 1st percentile 0.009 (normal), 0.001 (dark), median ~0.2.
+    Blank pages, sky, grey/black images score 0. Limitation: colour only - skin or random
+    texture can pass; a learned "not a leaf" class would be the robust fix.
+    """
+    hsv = cv2.cvtColor(rgb, cv2.COLOR_RGB2HSV)
+    h, s, v = hsv[..., 0], hsv[..., 1], hsv[..., 2]
+    return float(((h >= 5) & (h <= 50) & (s >= 50) & (v >= 20)).mean())
+
+
 def display_name(label: str) -> str:
     """'Tomato___Late_blight' -> 'Tomato – Late blight'."""
     crop, _, disease = label.partition("___")
