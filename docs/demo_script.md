@@ -1,5 +1,7 @@
 # LeafGuard: Demo Script (about 10 minutes)
 
+**Rohan Sirsewad (DA24B023)** · DA3408 AI Operations (Prof. Sudarsun) · IIT Madras
+
 Do the prep before the evaluator joins. Each step names the rubric item it demonstrates.
 
 ## Prep
@@ -90,7 +92,7 @@ Walk through `docs/`:
 - architecture
 - HLD
 - LLD with the OpenAPI spec
-- test plan and report: `dvc repro test` gives 46/46
+- test plan and report: `dvc repro test` gives 52/52
 - user manual
 
 Run `flake8` to show it's clean. Show the OO modules (`ModelService`, `RuntimeMonitor`, `Trainer`), the logging and the exception handlers.
@@ -101,4 +103,5 @@ Run `flake8` to show it's clean. Show the OO modules (`ModelService`, `RuntimeMo
 - **How do you avoid retrain storms?** Alerts need `for: 30s` and at least 20 samples, Alertmanager uses `repeat_interval: 1h`, and the trainer allows one run at a time with a 600 s cooldown for automatic triggers.
 - **How do you prevent a bad model going live?** The gate in `evaluate.py` (F1 ≥ 0.90 and ≥ production), plus one-click rollback.
 - **How is an experiment reproduced?** Use the MLflow run's `git_commit` tag, then `git checkout <sha> && dvc checkout && dvc repro`. The data is pinned by `dvc_data_md5`.
-- **Limitations:** PlantVillage photos are lab images, so real field photos drift, which is why the system monitors for it. Retraining currently reruns on the versioned dataset. Adding feedback-labelled uploads to the training data is the next step.
+- **Does retraining actually learn anything new?** Yes. Every confirmed or corrected upload is queued, encrypted, in `data/feedback/<label>/`. `scripts/retrain.sh` decrypts these into `data/raw` and runs `dvc add data/raw` (a new data version, visible in `data/raw.dvc`) before `dvc repro`. With no new feedback, the same data gives exactly the same model (F1 0.9662 three times), which demonstrates reproducibility.
+- **Limitations:** PlantVillage photos are lab images, so real field photos drift, which is why the system monitors for it. A handful of feedback photos among about 2,850 lab images moves the model only a little. Weighting or oversampling feedback data is the next step. The admin endpoints have no authentication.

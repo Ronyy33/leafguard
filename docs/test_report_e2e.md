@@ -1,5 +1,7 @@
 # LeafGuard: End-to-End Test Report
 
+**Rohan Sirsewad (DA24B023)** · DA3408 AI Operations (Prof. Sudarsun) · IIT Madras
+
 **Date:** 2026-11-14
 **Environment:** `docker compose up -d --build` on a single aarch64 machine (6 CPUs, 7 GB RAM, no GPU), 9 services.
 
@@ -46,5 +48,5 @@ No manual step was involved after sending the traffic.
 The full stack starts with one command and all 7 E2E tests pass, so **AC10 is met ✅**.
 
 ## 4. Known limitations found during testing
-- Retraining on the same versioned data reproduces the same model. It restores a validated model but can't adapt to field photos until feedback-labelled uploads are added to the dataset (see HLD §8, future work).
+- With no new feedback, retraining on the same versioned data reproduces the same model. This was the reason for adding the feedback-import step (`scripts/retrain.sh`, tested in `tests/test_import_feedback.py` and `test_feedback_queues_labelled_photo_for_retraining`). Labelled field photos now become a new DVC data version before each retrain.
 - The first build needs about 6 GB of disk for images. On a nearly full disk, build services one at a time (`docker compose build backend`, then `trainer`, and so on).

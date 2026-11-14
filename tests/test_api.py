@@ -107,6 +107,17 @@ def test_feedback_flow(api, sample_jpg):
     assert again.status_code == 404
 
 
+def test_feedback_queues_labelled_photo_for_retraining(api, sample_jpg, tmp_path, monkeypatch):
+    from app import main
+    from app.config import Settings
+
+    monkeypatch.setattr(main, "settings", Settings(inference_mode="local", feedback_dir=str(tmp_path / "fb")))
+    pid = _predict(api, sample_jpg).json()["prediction_id"]
+    api.post("/feedback", json={"prediction_id": pid, "true_label": "Tomato___healthy"})
+    saved = tmp_path / "fb" / "Tomato___healthy" / f"{pid}.bin"
+    assert saved.exists() and main.store.fernet.decrypt(saved.read_bytes()) == sample_jpg
+
+
 def test_feedback_unknown_label(api, sample_jpg):
     pid = _predict(api, sample_jpg).json()["prediction_id"]
     assert api.post("/feedback", json={"prediction_id": pid, "true_label": "Banana___x"}).status_code == 422

@@ -1,5 +1,7 @@
 # LeafGuard: Architecture
 
+**Rohan Sirsewad (DA24B023)** · DA3408 AI Operations (Prof. Sudarsun) · IIT Madras
+
 ## 1. System diagram
 
 ```mermaid
@@ -54,7 +56,9 @@ flowchart LR
 2. The backend computes brightness and blur, plus drift z-scores against the training baseline.
 3. Prometheus scrapes these and evaluates `rules.yml`.
 4. When `InputBrightnessDrift`, `InputBlurDrift` or `AccuracyDrop` fires, Alertmanager calls the backend webhook.
-5. The backend calls the trainer's `POST /retrain`, which runs `dvc repro -f evaluate`.
+5. The backend calls the trainer's `POST /retrain`, which runs `scripts/retrain.sh`:
+   - It imports feedback-labelled uploads into `data/raw` and runs `dvc add` to version them.
+   - It then runs `dvc repro -f evaluate`.
 6. The evaluate stage registers the new version and moves `@production` only if the new model is at least as good.
 7. The model server and backend notice the alias change (they poll every 30 s) and hot-swap to the new model.
 

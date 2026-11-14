@@ -54,6 +54,13 @@ groups:
         annotations:
           summary: "MLflow model server unreachable - backend is using local fallback"
 
+      - alert: MLflowDown
+        expr: leafguard_mlflow_up == 0
+        for: 1m
+        labels: {severity: critical}
+        annotations:
+          summary: "MLflow tracking server / registry unreachable - no new models can be loaded"
+
       - alert: ServiceDown
         expr: up{job=~"backend|trainer"} == 0
         for: 30s

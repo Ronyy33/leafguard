@@ -9,9 +9,11 @@ Endpoint contract: docs/LLD.md (also live at /docs).
 from __future__ import annotations
 
 import logging
+import shutil
 import threading
 import time
 import uuid
+from pathlib import Path
 
 import requests
 from fastapi import FastAPI, File, HTTPException, Query, Request, UploadFile
@@ -83,6 +85,11 @@ def _registry_poller() -> None:
             M.MODEL_SERVER_UP.set(1)
         except Exception:
             M.MODEL_SERVER_UP.set(0)
+        try:
+            requests.get(f"{settings.mlflow_tracking_uri}/health", timeout=2).raise_for_status()
+            M.MLFLOW_UP.set(1)
+        except Exception:
+            M.MLFLOW_UP.set(0)
 
 
 @app.on_event("startup")
@@ -280,6 +287,25 @@ async def predict(
     )
 
 
+def _save_labelled_upload(prediction_id: str, true_label: str) -> None:
+    """Copy the (still encrypted) upload to FEEDBACK_DIR/<true_label>/ so the next retrain can use it.
+
+    The trainer decrypts and imports these into data/raw (src/data/import_feedback.py), creating a
+    new DVC data version - this is how the model learns from real field photos.
+    """
+    src = store.dir / f"{prediction_id}.bin"
+    if not settings.store_uploads or not src.exists():
+        return
+    try:
+        dest = Path(settings.feedback_dir) / true_label
+        dest.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(src, dest / f"{prediction_id}.bin")
+        M.LABELLED_SAMPLES.inc()
+    except Exception as exc:  # never fail the user's request because of this
+        logger.warning("could not save labelled sample: %s", exc)
+        M.ERRORS.labels(type="feedback_storage").inc()
+
+
 @app.post(
     "/feedback",
     response_model=FeedbackResponse,
@@ -294,6 +320,7 @@ def feedback(body: FeedbackRequest):
         correct, acc, n = monitor.record_feedback(body.prediction_id, body.true_label)
     except KeyError:
         raise HTTPException(404, "Unknown or already-rated prediction_id")
+    _save_labelled_upload(body.prediction_id, body.true_label)
     return FeedbackResponse(accepted=True, correct=correct, rolling_accuracy=round(acc, 4), feedback_count=n)
 
 

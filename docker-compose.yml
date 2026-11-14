@@ -53,7 +53,10 @@ services:
       CORS_ORIGINS: "*"
       ENCRYPTION_KEY: ${ENCRYPTION_KEY:-}
       UPLOAD_DIR: /data/uploads
-    volumes: ["uploads:/data/uploads"]
+      FEEDBACK_DIR: /data/feedback
+    volumes:
+      - uploads:/data/uploads
+      - ./data/feedback:/data/feedback           # labelled uploads -> picked up by the trainer
     depends_on:
       mlflow: {condition: service_healthy}
 
@@ -66,7 +69,9 @@ services:
     shm_size: 1gb             # Ray object store
     environment:
       <<: *pyenv
-      RETRAIN_COMMAND: dvc repro -f evaluate
+      RETRAIN_COMMAND: bash scripts/retrain.sh
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:-}        # to decrypt labelled uploads
+      FEEDBACK_DIR: /repo/data/feedback
       RETRAIN_COOLDOWN_S: "600"
       GIT_CONFIG_COUNT: "1"
       GIT_CONFIG_KEY_0: safe.directory
@@ -74,6 +79,7 @@ services:
     volumes:
       - .:/repo                                  # the Git + DVC repo itself
       - ${HOME}/.cache/torch:/tmp/torch          # pretrained weights cache (no re-download per retrain)
+      - ${HOME}/dvc-remote:${HOME}/dvc-remote    # local DVC remote (same absolute path as in .dvc/config)
     depends_on:
       mlflow: {condition: service_healthy}
 

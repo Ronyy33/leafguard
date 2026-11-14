@@ -197,8 +197,8 @@ stages:
     deps:
     - path: backend/app
       hash: md5
-      md5: d0f5cc6ab7123103ba072181f5fd9a22.dir
-      size: 97091
+      md5: f1f12a2b9167157518ea2fc13a5d572c.dir
+      size: 100920
       nfiles: 14
     - path: scripts/test_report.py
       hash: md5
@@ -206,28 +206,28 @@ stages:
       size: 1621
     - path: src
       hash: md5
-      md5: 97bd48283fe01d3ef53d631ed71904fe.dir
-      size: 90188
-      nfiles: 26
+      md5: 8d0fc89bae63fc9288259e80ae250362.dir
+      size: 96602
+      nfiles: 28
     - path: tests
       hash: md5
-      md5: 2e66fec77d1bc5202ba43163eaed2b87.dir
-      size: 159110
-      nfiles: 19
+      md5: 61bc237f7caa5861d0f9ad564239a715.dir
+      size: 173156
+      nfiles: 21
     - path: trainer/app.py
       hash: md5
-      md5: a5c18e760b178d58a357bf767a6cb7be
-      size: 7802
+      md5: b0422ea17e4fa55a3c971597eb725226
+      size: 7829
     outs:
     - path: reports/test_summary.json
       hash: md5
-      md5: e7d8e744818d9e6c0c2439d6740a61e8
+      md5: 19524f51989ea9c891f42a89c5b593dc
       size: 139
     - path: reports/tests/junit.xml
       hash: md5
-      md5: 82b40c2e170bf871e522bd0093fae4cc
-      size: 6685
+      md5: e1e3404852e5a6ef2e75b983394a7888
+      size: 7305
     - path: reports/tests/test_cases.md
       hash: md5
-      md5: 13ba864b512e08072e95b2a2fd79c570
-      size: 4034
+      md5: 1f1e528b6e45c3631fc62f1fa0b688ce
+      size: 4540

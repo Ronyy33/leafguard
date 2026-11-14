@@ -1,5 +1,7 @@
 # LeafGuard: High-Level Design
 
+**Rohan Sirsewad (DA24B023)** · DA3408 AI Operations (Prof. Sudarsun) · IIT Madras
+
 ## 1. Goals and non-goals
 
 **Goals:**
@@ -37,6 +39,7 @@
 | **Grad-CAM in the backend** | SHAP, LIME | One extra backward pass (~30 ms) gives a visual that non-technical users understand ("where the model looked"). |
 | **Registry alias polling** for deployment | Restart containers from CI | No privileged Docker socket is needed. Both the model server and the backend converge to `@production` within 30 s, and rollback is just moving the alias. |
 | **Drift = rolling z-score of brightness and blur** | KS test, PSI | Interpretable for operators ("photos are 25σ darker than training"), cheap per request, and maps directly onto the project statement's examples (brightness, blur). The window of 50 and the minimum of 20 samples avoid alerting on a single odd photo. |
+| **Feedback-labelled uploads become training data** | Retrain on the static dataset only | When a user confirms or corrects a prediction, the encrypted upload is queued under `data/feedback/<true label>/`. Before every retrain, `src/data/import_feedback.py` decrypts these into `data/raw`, and `scripts/retrain.sh` runs `dvc add data/raw`, which creates a new data version. Retraining therefore adapts to real field photos (dark, blurry, cluttered) instead of only reproducing the lab-photo model. The validate stage still checks the new photos and drops duplicates. |
 | **Accuracy from user feedback** | Only offline evaluation | Ground truth exists in production only when users confirm or correct a prediction. A rolling accuracy over the last 100 feedbacks drives the `AccuracyDrop` alert. |
 | **Fernet encryption of stored uploads** | Plaintext storage | Meets the security best practice: user images are kept for future labelled retraining but never stored in plaintext. The key comes from the `ENCRYPTION_KEY` env var. |
 | **Single multi-stage Dockerfile** for Python services | One Dockerfile per service | Torch, MLflow and Ray are about 1.5 GB of dependencies. Sharing the layer cuts build time and disk use by about 4×. The frontend still has its own Dockerfile. |
@@ -50,6 +53,7 @@
 
 ## 5. Model lifecycle
 ```
+user feedback ─► data/feedback ─► import_feedback ─► dvc add data/raw (new data version)
 params.yaml change ─► dvc exp run / dvc repro ─► MLflow run (params, metrics, artifacts, model)
       ─► evaluate: register vN ─► gate (F1 ≥ 0.90 and ≥ prod) ─► alias @production = vN
       ─► model-server + backend poll alias ─► serve vN ─► Prometheus/Grafana ─► alerts ─► retrain
@@ -69,7 +73,6 @@ params.yaml change ─► dvc exp run / dvc repro ─► MLflow run (params, met
 - CORS origins are configurable. Admin endpoints (retrain, rollback) are intended for the internal network. Adding authentication is listed as future work.
 
 ## 8. Future work
-- Add feedback-labelled uploads to the next training data version, so the model learns from field photos.
 - Train with brightness and blur augmentation so the model is more robust to field conditions.
 - Add authentication on the admin endpoints.
 - Add Kubernetes manifests (Minikube) for horizontal scaling of the model server.

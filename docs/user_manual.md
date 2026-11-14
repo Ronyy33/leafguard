@@ -1,5 +1,7 @@
 # LeafGuard: User Manual
 
+**Rohan Sirsewad (DA24B023)** · DA3408 AI Operations (Prof. Sudarsun) · IIT Madras
+
 *This manual is for farmers, field staff and anyone who wants to check a leaf. No technical knowledge is needed. The same guide is in the app under **Help**.*
 
 ## What LeafGuard does

@@ -1,5 +1,7 @@
 # LeafGuard: Problem Statement
 
+**Rohan Sirsewad (DA24B023)** · DA3408 AI Operations (Prof. Sudarsun) · IIT Madras
+
 ## Business problem
 Farmers and agronomy field workers often can't diagnose leaf diseases early. Expert visits are slow and costly, and a late diagnosis spreads infection and cuts yield. LeafGuard lets a non-technical user upload a photo of a leaf and get back, within a second:
 - the most likely disease (or "healthy")

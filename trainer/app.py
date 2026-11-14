@@ -1,6 +1,6 @@
 """LeafGuard trainer service: runs the DVC pipeline (the CI pipeline) on demand.
 
-POST /retrain   start `dvc repro -f evaluate` in the repo (202), or 409 if busy / cooling down
+POST /retrain   start scripts/retrain.sh (import feedback + dvc repro) in the repo (202), or 409 if busy / cooling down
 GET  /status    current state, history of runs, per-stage durations, log tail
 GET  /metrics   Prometheus metrics: run counts, durations, pipeline throughput
 
@@ -30,7 +30,7 @@ logging.basicConfig(level="INFO", format="%(asctime)s %(levelname)s %(name)s: %(
 logger = logging.getLogger("leafguard.trainer")
 
 REPO = Path(os.getenv("REPO_DIR", ".")).resolve()
-COMMAND = os.getenv("RETRAIN_COMMAND", "dvc repro -f evaluate").split()
+COMMAND = os.getenv("RETRAIN_COMMAND", "bash scripts/retrain.sh").split()
 COOLDOWN_S = int(os.getenv("RETRAIN_COOLDOWN_S", "600"))
 STAGE_RE = re.compile(r"Running stage '([^']+)'")
 ANSI_RE = re.compile(r"\x1b\[[0-9;?]*[A-Za-z]|\r")

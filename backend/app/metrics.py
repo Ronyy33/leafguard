@@ -45,3 +45,5 @@ MODEL_VERSION = Gauge("leafguard_model_version", "Registry version currently ser
 MODEL_RELOADS = Counter("leafguard_model_reloads_total", "Model (re)loads", ["reason"])
 MODEL_SERVER_UP = Gauge("leafguard_model_server_up", "1 if the MLflow model server is reachable")
 RETRAIN_REQUESTS = Counter("leafguard_retrain_requests_total", "Retrain triggers", ["source", "accepted"])
+LABELLED_SAMPLES = Counter("leafguard_labelled_samples_total", "User-labelled uploads queued for the next retrain")
+MLFLOW_UP = Gauge("leafguard_mlflow_up", "1 if the MLflow tracking server / registry is reachable")

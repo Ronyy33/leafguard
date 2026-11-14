@@ -1,5 +1,7 @@
 # LeafGuard: Low-Level Design
 
+**Rohan Sirsewad (DA24B023)** · DA3408 AI Operations (Prof. Sudarsun) · IIT Madras
+
 The machine-readable contract is [`openapi.json`](openapi.json), exported from the running backend. It's also browsable live at `http://localhost:8000/docs`. This document is the human-readable version.
 
 ## 1. Module design (OO)
@@ -91,7 +93,9 @@ The machine-readable contract is [`openapi.json`](openapi.json), exported from t
 | 404 | Unknown `prediction_id`, or it was already rated (each prediction can be rated once) |
 | 422 | `true_label` isn't a known class, or the body is invalid |
 
-**Side effects:** updates `leafguard_feedback_total{correct}` and `leafguard_rolling_accuracy` (last 100 feedbacks). The `AccuracyDrop` alert depends on these.
+**Side effects:**
+- Updates `leafguard_feedback_total{correct}` and `leafguard_rolling_accuracy` (last 100 feedbacks). The `AccuracyDrop` alert depends on these.
+- Copies the encrypted upload to `FEEDBACK_DIR/<true_label>/<prediction_id>.bin` and increments `leafguard_labelled_samples_total`. The next retrain imports it into the training data.
 
 ### 2.3 Read-only model endpoints
 
@@ -123,7 +127,7 @@ The machine-readable contract is [`openapi.json`](openapi.json), exported from t
 
 | Method and path | Request | Response |
 |---|---|---|
-| `POST /retrain` | `{"reason": "manual"}` | **202** `{"accepted": true, "detail": "pipeline started: dvc repro -f evaluate", ...}`, or **409** `{"accepted": false, "detail": "a pipeline run is already in progress" \| "cooldown active (Ns left)", ...}` |
+| `POST /retrain` | `{"reason": "manual"}` | **202** `{"accepted": true, "detail": "pipeline started: bash scripts/retrain.sh", ...}`, or **409** `{"accepted": false, "detail": "a pipeline run is already in progress" \| "cooldown active (Ns left)", ...}` |
 | `GET /status` | — | `{"state": "idle\|running\|succeeded\|failed", "current": {...}, "history": [{"reason", "started", "finished", "duration_s", "status", "stages": {"ingest": 9.8, ...}, "eval": {...}}], "log_tail": [...], "reports": {...}}` |
 | `GET /health` | — | `{"status": "ok"}` |
 | `GET /metrics/` | — | `leafguard_pipeline_*`, `leafguard_data_quality`, `leafguard_last_eval_*` |
@@ -162,6 +166,8 @@ The signature is inferred at log time (`mlflow.models.infer_signature`) and stor
 | `leafguard_model_reloads_total` | counter | reason |
 | `leafguard_model_server_up` | gauge | — |
 | `leafguard_retrain_requests_total` | counter | source, accepted |
+| `leafguard_labelled_samples_total` | counter | — |
+| `leafguard_mlflow_up` | gauge | — |
 | `leafguard_pipeline_runs_total` | counter (trainer) | status |
 | `leafguard_pipeline_running` | gauge (trainer) | — |
 | `leafguard_pipeline_last_duration_seconds` | gauge (trainer) | — |
@@ -182,10 +188,11 @@ The signature is inferred at log time (`mlflow.models.infer_signature`) and stor
 | `MODEL_SERVER_URL` | `http://localhost:5001` | backend |
 | `TRAINER_URL` | `http://localhost:8001` | backend |
 | `MAX_UPLOAD_MB` | `5` | backend |
-| `ENCRYPTION_KEY` | auto-generated (ephemeral) | backend |
+| `ENCRYPTION_KEY` | from `.env` (gitignored; template in `.env.example`) | backend, trainer |
 | `DRIFT_WINDOW` | `50` | backend |
 | `LOW_CONFIDENCE_THRESHOLD` | `0.6` | backend |
 | `CORS_ORIGINS` | `*` | backend |
 | `API_BASE_URL` | `http://localhost:8000` | frontend (injected into `config.js`) |
-| `RETRAIN_COMMAND` | `dvc repro -f evaluate` | trainer |
+| `FEEDBACK_DIR` | `feedback` (backend), `data/feedback` (trainer) | backend, trainer |
+| `RETRAIN_COMMAND` | `bash scripts/retrain.sh` | trainer |
 | `RETRAIN_COOLDOWN_S` | `600` | trainer |

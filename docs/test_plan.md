@@ -1,5 +1,7 @@
 # LeafGuard: Test Plan and Test Report
 
+**Rohan Sirsewad (DA24B023)** · DA3408 AI Operations (Prof. Sudarsun) · IIT Madras
+
 ## 1. Scope
 **In scope:**
 - The data pipeline: validation and transforms
@@ -37,7 +39,7 @@
 | AC6 | Brightness drift detected within one window (50 uploads) | \|z\| > 3 | **z = −25.7** after 40 dark uploads | ✅ |
 | AC7 | A worse model is never promoted | gate holds | v1 (F1 0.881) rejected; v2 (0.966) promoted | ✅ |
 | AC8 | Data validation rejects bad files and keeps good ones | bad ≤ 5 % | 1 duplicate dropped, 2,851 kept | ✅ |
-| AC9 | All unit and integration tests pass | 100 % | **46 / 46** | ✅ |
+| AC9 | All unit and integration tests pass | 100 % | **52 / 52** | ✅ |
 | AC10 | Full stack starts with one command and E2E tests pass | 100 % | **7 / 7**, closed-loop retrain verified | ✅ |
 
 ## 4. Test cases
@@ -72,15 +74,17 @@ The full per-test table is generated on every run at `reports/tests/test_cases.m
 | TC30–36 | Drift | `test_drift.py` (7) | Synthetic leaf, darkened, blurred | brightness and blur move the expected way; z < −3 on dark inputs; baseline round-trips |
 | TC37–42 | Model | `test_model.py` (6) | Both backbones; freeze flags | output `[N,10]`; trainable params as configured |
 | TC43–46 | Trainer | `test_trainer.py` (4) | Fake pipelines | stage parsing; failure state; single-run lock; cooldown for alerts but not manual |
-| TC47–53 | E2E | `tests/e2e/test_stack.py` (7) | Running stack | UI served with config; backend uses the model server; the 3 real samples classified correctly; all Prometheus targets up; registry has a production version |
+| TC47–51 | Feedback import | `test_import_feedback.py` (5) | Encrypted labelled upload; rerun; unknown label; wrong key; no key | imported once as JPEG; idempotent; never creates a class; errors counted, no crash |
+| TC52 | API | `test_feedback_queues_labelled_photo_for_retraining` | Feedback on a stored upload | encrypted copy saved under `FEEDBACK_DIR/<label>/` |
+| TC53–59 | E2E | `tests/e2e/test_stack.py` (7) | Running stack | UI served with config; backend uses the model server; the 3 real samples classified correctly; all Prometheus targets up; registry has a production version |
 
 ## 5. Test report
 
-**Run of 2026-11-14, `dvc repro test`, commit `be8b884`:**
+**Run of 2026-11-14, `dvc repro test`:**
 
 | Suite | Total | Passed | Failed | Skipped |
 |---|---|---|---|---|
-| Unit + integration | 46 | **46** | 0 | 0 |
+| Unit + integration | 52 | **52** | 0 | 0 |
 | E2E (needs the running stack) | 7 | — | — | 7 (run separately, see below) |
 
 **Performance and drift run** (`scripts/simulate_traffic.py`, local stack, model v2 via `mlflow models serve`):

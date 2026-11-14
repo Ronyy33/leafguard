@@ -1,5 +1,7 @@
 # LeafGuard: AIOps-driven plant disease detection
 
+**Rohan Sirsewad (DA24B023)** · DA3408 AI Operations (Prof. Sudarsun) · IIT Madras
+
 LeafGuard classifies photos of tomato, potato and apple leaves into 10 healthy or disease classes, and shows a Grad-CAM heatmap of what it looked at. Around the model it runs a full AIOps lifecycle built only with the DA3408 toolchain:
 - versioned data
 - a Ray data pipeline
@@ -24,7 +26,7 @@ LeafGuard classifies photos of tomato, potato and apple leaves into 10 healthy o
 **Results:**
 - Model v2 (MobileNetV2, fine-tuned) has test **macro-F1 0.966** and accuracy 0.965.
 - p95 `/predict` latency is **158 ms** on CPU, including the heatmap.
-- 46/46 unit and integration tests pass.
+- 52/52 unit and integration tests pass.
 
 ## Documentation
 | Doc | Purpose |
@@ -40,6 +42,7 @@ LeafGuard classifies photos of tomato, potato and apple leaves into 10 healthy o
 ## Run everything (Docker)
 ```bash
 dvc pull                              # data + model weights from the DVC remote
+cp .env.example .env                  # then set ENCRYPTION_KEY (command is in the file)
 export UID GID=$(id -g)               # containers write to the repo as you
 docker compose up -d --build
 ```

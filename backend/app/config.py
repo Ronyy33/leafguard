@@ -32,6 +32,8 @@ class Settings:
     upload_dir: str = _env("UPLOAD_DIR", "uploads")
     encryption_key: str = _env("ENCRYPTION_KEY", "")  # Fernet key; generated at startup if empty
     store_uploads: bool = _env("STORE_UPLOADS", "true").lower() == "true"
+    # user-labelled uploads land here (still encrypted) and get imported into the next training run
+    feedback_dir: str = _env("FEEDBACK_DIR", "feedback")
 
     # monitoring
     drift_window: int = int(_env("DRIFT_WINDOW", "50"))
