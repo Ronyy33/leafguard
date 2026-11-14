@@ -1,0 +1,5 @@
+{
+  "test_macro_f1": 0.9662,
+  "test_dark_macro_f1": 0.84,
+  "test_blur_macro_f1": 0.1975
+}

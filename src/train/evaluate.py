@@ -19,6 +19,7 @@ import json
 import os
 from pathlib import Path
 
+import cv2
 import matplotlib
 
 matplotlib.use("Agg")
@@ -52,6 +53,22 @@ def predict(model: torch.nn.Module, X: np.ndarray, batch: int = 128) -> np.ndarr
     return np.concatenate(out)
 
 
+def degrade(X: np.ndarray, kind: str) -> np.ndarray:
+    """Field-condition copies of the test set (same idea as the drift demo): dark or blurry photos."""
+    if kind == "dark":
+        return (X.astype(np.float32) * 0.35).astype(np.uint8)
+    if kind == "blur":
+        return np.stack([cv2.GaussianBlur(x, (0, 0), sigmaX=3) for x in X])
+    raise ValueError(kind)
+
+
+def robustness(model: torch.nn.Module, X: np.ndarray, y: np.ndarray) -> dict[str, float]:
+    return {
+        f"test_{k}_macro_f1": float(f1_score(y, predict(model, degrade(X, k)), average="macro"))
+        for k in ("dark", "blur")
+    }
+
+
 def current_production_f1(client: MlflowClient) -> float:
     """Test macro-F1 of the model currently aliased @production (-1 if none)."""
     try:
@@ -78,6 +95,8 @@ def main() -> None:
     acc = float(accuracy_score(y_true, y_pred))
     report = classification_report(y_true, y_pred, target_names=names, output_dict=True, zero_division=0)
     min_recall = min(report[n]["recall"] for n in names)
+    robust = robustness(model, test["X"], y_true)
+    logger.info("robustness: %s", robust)
 
     Path("reports").mkdir(exist_ok=True)
     write_json(report, "reports/classification_report.json")
@@ -94,7 +113,7 @@ def main() -> None:
     prod_f1 = current_production_f1(client)
 
     with mlflow.start_run(run_id=run_id):
-        mlflow.log_metrics({"test_macro_f1": f1, "test_accuracy": acc, "test_min_class_recall": min_recall})
+        mlflow.log_metrics({"test_macro_f1": f1, "test_accuracy": acc, "test_min_class_recall": min_recall, **robust})
         mlflow.log_artifact("reports/confusion_matrix.png", artifact_path="eval")
         mlflow.log_artifact("reports/classification_report.json", artifact_path="eval")
         mv = mlflow.register_model(f"runs:/{run_id}/model", MODEL_NAME)
@@ -113,6 +132,7 @@ def main() -> None:
             "test_macro_f1": round(f1, 4),
             "test_accuracy": round(acc, 4),
             "test_min_class_recall": round(min_recall, 4),
+            **{k: round(v, 4) for k, v in robust.items()},
             "model_version": int(mv.version),
             "promoted": promoted,
             "previous_production_f1": round(prod_f1, 4),

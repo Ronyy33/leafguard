@@ -30,6 +30,7 @@ from mlflow.models import infer_signature
 from sklearn.metrics import f1_score
 from torch import nn
 from torch.utils.data import DataLoader, Dataset
+from torchvision.transforms import functional as TF
 
 from src.train.model import LeafNet
 from src.utils import get_logger, git_commit, git_dirty, load_params, write_json
@@ -43,9 +44,10 @@ EXPERIMENT = "leafguard"
 class NpzDataset(Dataset):
     """uint8 HWC images -> float CHW tensors in [0,1], with optional light augmentation."""
 
-    def __init__(self, path: Path, augment: bool = False):
+    def __init__(self, path: Path, augment: bool = False, field_augment: bool = False):
         d = np.load(path)
         self.X, self.y, self.augment = d["X"], d["y"], augment
+        self.field_augment = field_augment  # simulate field photos: dark / blurry
 
     def __len__(self) -> int:
         return len(self.y)
@@ -57,7 +59,15 @@ class NpzDataset(Dataset):
                 x = x.flip(2)  # horizontal flip
             if torch.rand(1) < 0.5:
                 x = x.flip(1)  # vertical flip
-            x = (x * (0.8 + 0.4 * torch.rand(1))).clamp(0, 1)  # brightness jitter
+            if self.field_augment:
+                # field conditions seen in production drift: much darker photos and out-of-focus photos
+                if torch.rand(1) < 0.4:
+                    x = x * (0.25 + 0.75 * torch.rand(1))
+                if torch.rand(1) < 0.3:
+                    x = TF.gaussian_blur(x, kernel_size=9, sigma=float(0.5 + 2.5 * torch.rand(1)))
+                x = x.clamp(0, 1)
+            else:
+                x = (x * (0.8 + 0.4 * torch.rand(1))).clamp(0, 1)  # brightness jitter
         return x, int(self.y[i])
 
 
@@ -97,7 +107,7 @@ def main() -> None:
     torch.set_num_threads(max(1, (os.cpu_count() or 2) - 1))
 
     labels = json.loads((PROCESSED / "labels.json").read_text())
-    train_ds = NpzDataset(PROCESSED / "train.npz", augment=tp["augment"])
+    train_ds = NpzDataset(PROCESSED / "train.npz", augment=tp["augment"], field_augment=tp.get("field_augment", False))
     val_ds = NpzDataset(PROCESSED / "val.npz")
     train_dl = DataLoader(train_ds, batch_size=tp["batch_size"], shuffle=True, num_workers=tp["num_workers"])
     val_dl = DataLoader(val_ds, batch_size=64, num_workers=tp["num_workers"])
