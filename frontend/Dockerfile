@@ -8,4 +8,4 @@ COPY js/ /usr/share/nginx/html/js/
 COPY docker-entrypoint.d/40-leafguard-config.sh /docker-entrypoint.d/
 RUN chmod +x /docker-entrypoint.d/40-leafguard-config.sh
 EXPOSE 80
-HEALTHCHECK --interval=15s --timeout=3s CMD wget -qO- http://localhost/ >/dev/null || exit 1
+HEALTHCHECK --interval=15s --timeout=3s CMD wget -qO- http://127.0.0.1/ >/dev/null || exit 1
