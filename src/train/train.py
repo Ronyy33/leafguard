@@ -149,7 +149,9 @@ def main() -> None:
         example = val_ds[0][0].unsqueeze(0).numpy()
         with torch.no_grad():
             signature = infer_signature(example, model(torch.from_numpy(example)).numpy())
-        mlflow.pytorch.log_model(model, artifact_path="model", signature=signature, input_example=example)
+        # code_paths bundles src/ so `mlflow models serve` can unpickle LeafNet without the repo
+        mlflow.pytorch.log_model(model, artifact_path="model", signature=signature, input_example=example,
+                                 code_paths=["src"])
 
         for f in ("labels.json", "baseline_stats.json"):
             mlflow.log_artifact(str(PROCESSED / f), artifact_path="meta")

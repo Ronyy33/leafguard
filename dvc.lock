@@ -111,3 +111,82 @@ stages:
       hash: md5
       md5: 817d9e304dd1ef31502414bd2cf0b247
       size: 202
+  train:
+    cmd: python -m src.train.train
+    deps:
+    - path: data/processed
+      hash: md5
+      md5: 1ffe1e66609b99888cfd6970ee42fc37.dir
+      size: 100540901
+      nfiles: 5
+    - path: src/train/model.py
+      hash: md5
+      md5: 7f5f5cd290dbb6049aa5fed0cd50ad90
+      size: 2055
+    - path: src/train/train.py
+      hash: md5
+      md5: 9adfcfb6b36f4119b464e946f6c27020
+      size: 7111
+    params:
+      params.yaml:
+        train:
+          backbone: mobilenet_v2
+          epochs: 5
+          batch_size: 32
+          lr: 0.001
+          freeze_backbone: true
+          augment: true
+          num_workers: 2
+    outs:
+    - path: models/model.pt
+      hash: md5
+      md5: 618b7002e11277bf09af19f06358634d
+      size: 9170298
+    - path: models/model_meta.json
+      hash: md5
+      md5: 6bc91fac4674c14ce5aebed9f2915268
+      size: 66
+    - path: models/run_id.txt
+      hash: md5
+      md5: 7e0e65e1d81f7de794e953bb30d6592e
+      size: 32
+    - path: reports/train_metrics.json
+      hash: md5
+      md5: 8831ab8b9056a4f7bcf3e5cd1e4fc3bb
+      size: 118
+  evaluate:
+    cmd: python -m src.train.evaluate
+    deps:
+    - path: data/processed
+      hash: md5
+      md5: 1ffe1e66609b99888cfd6970ee42fc37.dir
+      size: 100540901
+      nfiles: 5
+    - path: models/model.pt
+      hash: md5
+      md5: 618b7002e11277bf09af19f06358634d
+      size: 9170298
+    - path: models/run_id.txt
+      hash: md5
+      md5: 7e0e65e1d81f7de794e953bb30d6592e
+      size: 32
+    - path: src/train/evaluate.py
+      hash: md5
+      md5: 063d3a93b4c520d701ea306a37c83a33
+      size: 4642
+    params:
+      params.yaml:
+        evaluate.min_macro_f1: 0.9
+    outs:
+    - path: reports/classification_report.json
+      hash: md5
+      md5: f2e3e096a30fb4e679d3459e06120843
+      size: 1852
+    - path: reports/confusion_matrix.png
+      hash: md5
+      md5: 92ba4295731e5097031994342d30861c
+      size: 78045
+    - path: reports/eval_metrics.json
+      hash: md5
+      md5: 6cff9a978cb666bb8fc630c53ca8a0ce
+      size: 168

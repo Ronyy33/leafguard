@@ -1,0 +1,8 @@
+{
+  "test_macro_f1": 0.8807,
+  "test_accuracy": 0.8785,
+  "test_min_class_recall": 0.6889,
+  "model_version": 1,
+  "promoted": false,
+  "previous_production_f1": -1.0
+}
