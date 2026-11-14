@@ -1,5 +1,5 @@
 {
-  "best_val_macro_f1": 0.912,
-  "train_total_seconds": 90.7,
-  "mlflow_run_id": "2052ac6248364d329dfbbc8c4d607967"
+  "best_val_macro_f1": 0.9834,
+  "train_total_seconds": 393.4,
+  "mlflow_run_id": "b7b5463c0f5c40ed9b118b33dc9197fe"
 }

@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LeafGuard – Help</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%232f7d32' d='M17 8C8 10 5.9 16.2 3.8 21.3l1.9.7.9-2.3c.5.2 1 .3 1.4.3C19 20 22 3 22 3c-1 2-8 2.3-13 3.3S2 11.5 2 13.5s1.8 3.8 1.8 3.8C7 8 17 8 17 8z'/></svg>">
+  <script src="config.js"></script>
+  <script src="js/common.js" defer></script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="logo" href="index.html" aria-label="LeafGuard home">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" style="color:var(--brand)" d="M17 8C8 10 5.9 16.2 3.8 21.3l1.9.7.9-2.3c.5.2 1 .3 1.4.3C19 20 22 3 22 3c-1 2-8 2.3-13 3.3S2 11.5 2 13.5s1.8 3.8 1.8 3.8C7 8 17 8 17 8z"/></svg>
+      LeafGuard
+    </a>
+    <nav class="nav" aria-label="Main">
+      <a href="index.html">Check a leaf</a>
+      <a href="pipeline.html">Pipeline console</a>
+      <a href="manual.html" aria-current="page">Help</a>
+    </nav>
+    <div class="status-pill" role="status" aria-live="polite"><span id="api-dot" class="dot"></span><span id="api-text">Connecting…</span></div>
+  </div>
+</header>
+
+<main class="manual">
+  <h1>How to use LeafGuard</h1>
+  <p class="muted">LeafGuard looks at a photo of a plant leaf and tells you whether it looks healthy or which disease it most likely has. You don't need any technical knowledge to use it.</p>
+
+  <h2>Which plants are supported?</h2>
+  <ul>
+    <li><strong>Tomato:</strong> healthy, early blight, late blight, bacterial spot, leaf mold</li>
+    <li><strong>Potato:</strong> healthy, early blight, late blight</li>
+    <li><strong>Apple:</strong> healthy, apple scab</li>
+  </ul>
+  <div class="alert info">Photos of other plants will still get an answer, but it will not be meaningful.</div>
+
+  <h2>Checking a leaf, step by step</h2>
+  <ol class="steps">
+    <li><strong>Take a good photo.</strong> Photograph <em>one</em> leaf, filling most of the picture, in daylight, on a plain background. Hold the phone steady so the photo is sharp.</li>
+    <li><strong>Open “Check a leaf”.</strong> Drag the photo onto the dashed box, or click the box and choose the photo from your device. A small preview appears.</li>
+    <li><strong>Click “Check this leaf”.</strong> The answer appears in a second or two.</li>
+    <li><strong>Read the result.</strong> A green box with ✅ means the leaf looks healthy. A red box with ⚠️ shows the most likely disease.</li>
+    <li><strong>Tell us if it was right.</strong> Click “Yes, correct”, or “No, it's wrong” and choose the right answer. This helps us keep the system accurate.</li>
+  </ol>
+
+  <h2>Understanding the result</h2>
+  <ul>
+    <li><strong>Confidence:</strong> how sure the system is. Above 90% is very sure. Below 60% you'll see a warning, so retake the photo or ask an expert.</li>
+    <li><strong>Other possibilities:</strong> the next most likely answers.</li>
+    <li><strong>“Where the model looked”:</strong> a colour overlay on your photo. Red areas influenced the decision most; on a diseased leaf these should sit on the spots or lesions.</li>
+    <li><strong>Photo warnings:</strong> if your photo is very dark or blurry, you'll be told. Retaking it usually gives a better answer.</li>
+  </ul>
+
+  <h2>Common problems</h2>
+  <table>
+    <thead><tr><th>Message</th><th>What to do</th></tr></thead>
+    <tbody>
+      <tr><td>“That file isn't a photo we can read”</td><td>Use a JPG, PNG or WEBP photo (not PDF or HEIC).</td></tr>
+      <tr><td>“That photo is too large”</td><td>The limit is 5 MB. Use a lower camera resolution or share the photo at “medium” size.</td></tr>
+      <tr><td>“Cannot reach the LeafGuard service”</td><td>The service is offline. The status dot (top right) is red. Try again later or contact your administrator.</td></tr>
+      <tr><td>“The model is not loaded yet”</td><td>The system is starting up. Wait a minute and try again.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>For operators: the Pipeline console</h2>
+  <p>The <a href="pipeline.html">Pipeline console</a> shows the machine-learning system behind LeafGuard:</p>
+  <ul>
+    <li><strong>Pipeline DAG:</strong> the data and training steps and how long each took last time.</li>
+    <li><strong>Data drift:</strong> whether recent uploads look different from the training photos (e.g. darker or blurrier). Sustained drift automatically starts retraining.</li>
+    <li><strong>Model registry:</strong> every trained model version; the one marked <em>production</em> is answering users.</li>
+    <li><strong>Run pipeline now:</strong> retrain from scratch. A new model only replaces the current one if it scores at least as well.</li>
+    <li><strong>Roll back model:</strong> go back to the previous version (click twice to confirm).</li>
+    <li><strong>Live monitoring:</strong> the Grafana dashboard with traffic, response times, errors and drift.</li>
+  </ul>
+
+  <div class="alert warn" style="margin-top:2rem">LeafGuard gives guidance only. For important decisions such as spraying or removing plants, confirm with an agronomist.</div>
+</main>
+<footer>LeafGuard · user manual</footer>
+</body>
+</html>

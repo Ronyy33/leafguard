@@ -125,22 +125,22 @@ stages:
       size: 2055
     - path: src/train/train.py
       hash: md5
-      md5: 9adfcfb6b36f4119b464e946f6c27020
-      size: 7111
+      md5: 9e00708aa2f632befd73888a978e68bb
+      size: 7261
     params:
       params.yaml:
         train:
           backbone: mobilenet_v2
-          epochs: 5
+          epochs: 6
           batch_size: 32
-          lr: 0.001
-          freeze_backbone: true
+          lr: 0.0003
+          freeze_backbone: false
           augment: true
           num_workers: 2
     outs:
     - path: models/model.pt
       hash: md5
-      md5: 618b7002e11277bf09af19f06358634d
+      md5: 1de286bac24392148e2b5a84b91423ff
       size: 9170298
     - path: models/model_meta.json
       hash: md5
@@ -148,12 +148,12 @@ stages:
       size: 66
     - path: models/run_id.txt
       hash: md5
-      md5: 7e0e65e1d81f7de794e953bb30d6592e
+      md5: 4eccf111e10d50a8f4a0ab292d20d0ed
       size: 32
     - path: reports/train_metrics.json
       hash: md5
-      md5: 8831ab8b9056a4f7bcf3e5cd1e4fc3bb
-      size: 118
+      md5: 7c59a977ef1a7149d10da61eb1dc8070
+      size: 120
   evaluate:
     cmd: python -m src.train.evaluate
     deps:
@@ -164,11 +164,11 @@ stages:
       nfiles: 5
     - path: models/model.pt
       hash: md5
-      md5: 618b7002e11277bf09af19f06358634d
+      md5: 1de286bac24392148e2b5a84b91423ff
       size: 9170298
     - path: models/run_id.txt
       hash: md5
-      md5: 7e0e65e1d81f7de794e953bb30d6592e
+      md5: 4eccf111e10d50a8f4a0ab292d20d0ed
       size: 32
     - path: src/train/evaluate.py
       hash: md5
@@ -180,13 +180,13 @@ stages:
     outs:
     - path: reports/classification_report.json
       hash: md5
-      md5: f2e3e096a30fb4e679d3459e06120843
-      size: 1852
+      md5: 0c37b683a207d17f9399fc3d12c9dac1
+      size: 1758
     - path: reports/confusion_matrix.png
       hash: md5
-      md5: 92ba4295731e5097031994342d30861c
-      size: 78045
+      md5: 8ccb082b591ec3e7dce10e1b43a3589a
+      size: 75787
     - path: reports/eval_metrics.json
       hash: md5
-      md5: 6cff9a978cb666bb8fc630c53ca8a0ce
-      size: 168
+      md5: 2e0eae937213d4167b53fe9c96065726
+      size: 166

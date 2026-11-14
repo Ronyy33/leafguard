@@ -303,11 +303,12 @@ def pipeline_status(limit: int = Query(10, ge=1, le=50)):
     except Exception as exc:
         trainer = {"state": "unreachable", "detail": str(exc)}
 
-    runs, versions = [], []
+    runs, versions, experiment_id = [], [], None
     try:
         client = MlflowClient(settings.mlflow_tracking_uri)
         exp = client.get_experiment_by_name("leafguard")
         if exp:
+            experiment_id = exp.experiment_id
             for r in client.search_runs([exp.experiment_id], order_by=["start_time DESC"], max_results=limit):
                 end = r.info.end_time or int(time.time() * 1000)
                 runs.append({
@@ -328,5 +329,5 @@ def pipeline_status(limit: int = Query(10, ge=1, le=50)):
     except Exception as exc:
         logger.warning("mlflow query failed: %s", exc)
         M.ERRORS.labels(type="mlflow_query").inc()
-    return {"trainer": trainer, "runs": runs, "model_versions": versions,
+    return {"trainer": trainer, "runs": runs, "model_versions": versions, "experiment_id": experiment_id,
             "served_version": service.loaded.version if service.is_loaded else None}

@@ -1,0 +1,68 @@
+# Alerting rules (adapted from DA3408 Monitoring/sample_rules.yml).
+# Alerts labelled action=retrain are routed by Alertmanager to the backend
+# webhook, which starts the retraining pipeline.
+groups:
+  - name: leafguard-model
+    rules:
+      - alert: InputBrightnessDrift
+        expr: abs(leafguard_drift_zscore{feature="brightness"}) > 3 and on() leafguard_drift_window_samples >= 20
+        for: 30s
+        labels: {severity: warning, action: retrain}
+        annotations:
+          summary: "Uploaded photos are much darker/brighter than training data"
+          description: "Brightness drift z-score = {{ $value | printf \"%.1f\" }} over the rolling window."
+
+      - alert: InputBlurDrift
+        expr: abs(leafguard_drift_zscore{feature="blur"}) > 3 and on() leafguard_drift_window_samples >= 20
+        for: 30s
+        labels: {severity: warning, action: retrain}
+        annotations:
+          summary: "Uploaded photos are much blurrier/sharper than training data"
+          description: "Blur drift z-score = {{ $value | printf \"%.1f\" }} over the rolling window."
+
+      - alert: AccuracyDrop
+        expr: leafguard_rolling_accuracy < 0.8 and on() sum(leafguard_feedback_total) >= 20
+        for: 30s
+        labels: {severity: critical, action: retrain}
+        annotations:
+          summary: "Live accuracy from user feedback dropped below 80%"
+          description: "Rolling accuracy = {{ $value | printf \"%.2f\" }}."
+
+  - name: leafguard-service
+    rules:
+      - alert: HighErrorRate
+        expr: |
+          sum(rate(leafguard_requests_total{status=~"5.."}[5m]))
+            / clamp_min(sum(rate(leafguard_requests_total[5m])), 1e-9) > 0.01
+        for: 1m
+        labels: {severity: critical}
+        annotations:
+          summary: "More than 1% of API requests are failing (5xx)"
+
+      - alert: HighPredictLatency
+        expr: |
+          histogram_quantile(0.95, sum by (le) (rate(leafguard_request_latency_seconds_bucket{endpoint="/predict"}[5m]))) > 0.5
+        for: 2m
+        labels: {severity: warning}
+        annotations:
+          summary: "p95 /predict latency above 500 ms"
+
+      - alert: ModelServerDown
+        expr: leafguard_model_server_up == 0
+        for: 1m
+        labels: {severity: warning}
+        annotations:
+          summary: "MLflow model server unreachable - backend is using local fallback"
+
+      - alert: ServiceDown
+        expr: up{job=~"backend|trainer"} == 0
+        for: 30s
+        labels: {severity: critical}
+        annotations:
+          summary: "{{ $labels.job }} is down"
+
+      - alert: PipelineFailed
+        expr: increase(leafguard_pipeline_runs_total{status="failed"}[30m]) > 0
+        labels: {severity: warning}
+        annotations:
+          summary: "A retraining pipeline run failed - check the trainer log"

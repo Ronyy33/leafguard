@@ -1,0 +1,7 @@
+apiVersion: 1
+providers:
+  - name: leafguard
+    folder: LeafGuard
+    type: file
+    options:
+      path: /var/lib/grafana/dashboards

@@ -1,0 +1,131 @@
+# LeafGuard: full stack.   docker compose up -d --build
+#
+#   frontend      http://localhost:8080   web UI (nginx, static)        -> talks to backend via REST only
+#   backend       http://localhost:8000   FastAPI (/docs)                -> model-server, mlflow, trainer
+#   model-server  http://localhost:5001   mlflow models serve (@production)
+#   mlflow        http://localhost:5000   tracking server + model registry
+#   trainer       http://localhost:8001   runs `dvc repro` on demand (retraining)
+#   prometheus    http://localhost:9090   metrics + alert rules
+#   alertmanager  http://localhost:9093   routes alerts -> backend webhook -> retrain
+#   grafana       http://localhost:3000   dashboards (admin / admin)
+#   node-exporter                         host metrics
+
+x-python: &python
+  build: &pybuild
+    context: .
+    dockerfile: Dockerfile
+  restart: unless-stopped
+  environment: &pyenv
+    MLFLOW_TRACKING_URI: http://mlflow:5000
+    TORCH_HOME: /tmp/torch
+
+services:
+  mlflow:
+    <<: *python
+    build: {<<: *pybuild, target: mlflow}
+    image: leafguard/mlflow:latest
+    ports: ["5000:5000"]
+    volumes: ["./mlflow_store:/mlflow"]
+    user: "${UID:-1000}:${GID:-1000}"
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:5000/health"]
+      interval: 10s
+      retries: 10
+
+  model-server:
+    <<: *python
+    build: {<<: *pybuild, target: model-server}
+    image: leafguard/model-server:latest
+    ports: ["5001:5001"]
+    depends_on:
+      mlflow: {condition: service_healthy}
+
+  backend:
+    <<: *python
+    build: {<<: *pybuild, target: backend}
+    image: leafguard/backend:latest
+    ports: ["8000:8000"]
+    environment:
+      <<: *pyenv
+      INFERENCE_MODE: mlflow_serve
+      MODEL_SERVER_URL: http://model-server:5001
+      TRAINER_URL: http://trainer:8001
+      CORS_ORIGINS: "*"
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:-}
+      UPLOAD_DIR: /data/uploads
+    volumes: ["uploads:/data/uploads"]
+    depends_on:
+      mlflow: {condition: service_healthy}
+
+  trainer:
+    <<: *python
+    build: {<<: *pybuild, target: trainer}
+    image: leafguard/trainer:latest
+    ports: ["8001:8001"]
+    user: "${UID:-1000}:${GID:-1000}"
+    shm_size: 1gb             # Ray object store
+    environment:
+      <<: *pyenv
+      RETRAIN_COMMAND: dvc repro -f evaluate
+      RETRAIN_COOLDOWN_S: "600"
+      GIT_CONFIG_COUNT: "1"
+      GIT_CONFIG_KEY_0: safe.directory
+      GIT_CONFIG_VALUE_0: "*"
+    volumes: [".:/repo"]       # the Git + DVC repo itself
+    depends_on:
+      mlflow: {condition: service_healthy}
+
+  frontend:
+    build: ./frontend
+    image: leafguard/frontend:latest
+    ports: ["8080:80"]
+    restart: unless-stopped
+    environment:
+      API_BASE_URL: ${API_BASE_URL:-http://localhost:8000}
+      GRAFANA_URL: ${GRAFANA_URL:-http://localhost:3000}
+      MLFLOW_URL: ${MLFLOW_URL:-http://localhost:5000}
+      PROMETHEUS_URL: ${PROMETHEUS_URL:-http://localhost:9090}
+      ALERTMANAGER_URL: ${ALERTMANAGER_URL:-http://localhost:9093}
+    depends_on: [backend]
+
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    ports: ["9090:9090"]
+    restart: unless-stopped
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/rules.yml:/etc/prometheus/rules.yml:ro
+      - prometheus-data:/prometheus
+
+  alertmanager:
+    image: prom/alertmanager:v0.27.0
+    ports: ["9093:9093"]
+    restart: unless-stopped
+    volumes: ["./monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro"]
+
+  grafana:
+    image: grafana/grafana:11.3.0
+    ports: ["3000:3000"]
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_SECURITY_ALLOW_EMBEDDING: "true"
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/leafguard.json
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+
+  node-exporter:
+    image: prom/node-exporter:v1.8.2
+    restart: unless-stopped
+    pid: host
+    volumes: ["/:/host:ro,rslave"]
+    command: ["--path.rootfs=/host"]
+
+volumes:
+  uploads:
+  prometheus-data:
+  grafana-data:

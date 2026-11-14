@@ -13,10 +13,10 @@ data:
 
 train:
   backbone: mobilenet_v2   # mobilenet_v2 | resnet18
-  epochs: 5
+  epochs: 6
   batch_size: 32
-  lr: 0.001
-  freeze_backbone: true
+  lr: 0.0003
+  freeze_backbone: false
   augment: true
   num_workers: 2
 

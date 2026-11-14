@@ -1,0 +1,20 @@
+# Alertmanager config (adapted from DA3408 Monitoring/sample_alertmanager.yml).
+# Every alert goes to the backend webhook (logged); the backend starts a retrain
+# only for alerts in its RETRAIN_ALERTS set (drift / accuracy drop).
+route:
+  receiver: backend-webhook
+  group_by: [alertname]
+  group_wait: 10s
+  group_interval: 1m
+  repeat_interval: 1h
+
+receivers:
+  - name: backend-webhook
+    webhook_configs:
+      - url: http://backend:8000/alerts/webhook
+        send_resolved: false
+
+inhibit_rules:
+  # if the backend itself is down, don't also fire latency/error alerts
+  - source_matchers: [alertname="ServiceDown"]
+    target_matchers: [severity="warning"]

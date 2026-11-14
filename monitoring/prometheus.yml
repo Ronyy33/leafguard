@@ -1,0 +1,31 @@
+# Prometheus config (adapted from DA3408 Monitoring/sample_prometheus.yml)
+global:
+  scrape_interval: 5s        # near-real-time dashboards
+  evaluation_interval: 15s
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ["alertmanager:9093"]
+
+rule_files:
+  - /etc/prometheus/rules.yml
+
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  - job_name: backend            # FastAPI inference service
+    metrics_path: /metrics/
+    static_configs:
+      - targets: ["backend:8000"]
+
+  - job_name: trainer            # DVC pipeline runner
+    metrics_path: /metrics/
+    static_configs:
+      - targets: ["trainer:8001"]
+
+  - job_name: node               # host CPU / memory / disk
+    static_configs:
+      - targets: ["node-exporter:9100"]

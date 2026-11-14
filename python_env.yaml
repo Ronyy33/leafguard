@@ -2,4 +2,4 @@ python: "3.12"
 build_dependencies:
   - pip
 dependencies:
-  - -r requirements.txt
+  - -r requirements-dev.txt
