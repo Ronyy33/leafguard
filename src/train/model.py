@@ -20,8 +20,9 @@ class LeafNet(nn.Module):
     `mlflow models serve`, tests) only needs to send scaled pixels.
     """
 
-    def __init__(self, num_classes: int, backbone: str = "mobilenet_v2", pretrained: bool = True,
-                 freeze_backbone: bool = True):
+    def __init__(
+        self, num_classes: int, backbone: str = "mobilenet_v2", pretrained: bool = True, freeze_backbone: bool = True
+    ):
         super().__init__()
         self.backbone_name = backbone
         if backbone == "mobilenet_v2":

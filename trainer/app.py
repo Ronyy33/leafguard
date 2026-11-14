@@ -77,8 +77,9 @@ class Trainer:
         logger.info("pipeline start reason=%s", run["reason"])
         stage, stage_t0 = None, time.time()
         try:
-            proc = subprocess.Popen(COMMAND, cwd=REPO, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                    text=True, bufsize=1)
+            proc = subprocess.Popen(
+                COMMAND, cwd=REPO, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1
+            )
             for line in proc.stdout:
                 line = line.rstrip()
                 if not line or "row/s" in line:  # skip Ray progress-bar noise
@@ -154,9 +155,10 @@ class Trainer:
                 "log_tail": list(self.log_tail)[-60:],
                 "cooldown_s": COOLDOWN_S,
                 "command": " ".join(COMMAND),
-                "reports": {k: self._read_json(f"reports/{k}.json") for k in
-                            ("ingest_metrics", "validation", "preprocess_metrics", "train_metrics",
-                             "eval_metrics")},
+                "reports": {
+                    k: self._read_json(f"reports/{k}.json")
+                    for k in ("ingest_metrics", "validation", "preprocess_metrics", "train_metrics", "eval_metrics")
+                },
             }
 
 

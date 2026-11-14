@@ -12,8 +12,9 @@ DRIFT_FEATURES = ("brightness", "blur")  # the features we alert on
 
 
 class RuntimeMonitor:
-    def __init__(self, window: int, z_threshold: float = 3.0, feedback_window: int = 100,
-                 max_tracked_predictions: int = 5000):
+    def __init__(
+        self, window: int, z_threshold: float = 3.0, feedback_window: int = 100, max_tracked_predictions: int = 5000
+    ):
         self.window = window
         self.z_threshold = z_threshold
         self.detector: DriftDetector | None = None
@@ -51,8 +52,13 @@ class RuntimeMonitor:
             scores = self.detector.scores() if self.detector else {}
             n = len(self.detector.buffer) if self.detector else 0
         drifting = [k for k in DRIFT_FEATURES if abs(scores.get(k, 0.0)) > self.z_threshold]
-        return {"window_size": self.window, "samples_in_window": n, "zscores": scores,
-                "drifting_features": drifting, "threshold": self.z_threshold}
+        return {
+            "window_size": self.window,
+            "samples_in_window": n,
+            "zscores": scores,
+            "drifting_features": drifting,
+            "threshold": self.z_threshold,
+        }
 
     def reset_window(self) -> None:
         with self._lock:

@@ -24,9 +24,19 @@ from app import metrics as M
 from app.config import settings
 from app.model_service import InvalidImageError, ModelNotLoadedError, ModelService, display_name
 from app.monitor import RuntimeMonitor
-from app.schemas import (ClassScore, DriftStatus, ErrorResponse, FeedbackRequest, FeedbackResponse,
-                         HealthResponse, ModelActionResponse, ModelInfo, PredictionResponse, ReadyResponse,
-                         RetrainResponse)
+from app.schemas import (
+    ClassScore,
+    DriftStatus,
+    ErrorResponse,
+    FeedbackRequest,
+    FeedbackResponse,
+    HealthResponse,
+    ModelActionResponse,
+    ModelInfo,
+    PredictionResponse,
+    ReadyResponse,
+    RetrainResponse,
+)
 from app.storage import EncryptedStore
 
 logging.basicConfig(level=settings.log_level, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
@@ -103,8 +113,10 @@ async def observe_requests(request: Request, call_next):
 @app.exception_handler(ModelNotLoadedError)
 async def _no_model(_: Request, exc: ModelNotLoadedError):
     M.ERRORS.labels(type="model_not_loaded").inc()
-    return JSONResponse(status_code=503, content={"error": "model_unavailable",
-                                                  "detail": "The model is not loaded yet. Try again shortly."})
+    return JSONResponse(
+        status_code=503,
+        content={"error": "model_unavailable", "detail": "The model is not loaded yet. Try again shortly."},
+    )
 
 
 @app.exception_handler(Exception)
@@ -130,24 +142,35 @@ def ready():
     except Exception:
         reachable = False
     loaded = service.is_loaded
-    return {"ready": loaded, "model_loaded": loaded, "model_server_reachable": reachable,
-            "detail": "" if loaded else "model not loaded"}
+    return {
+        "ready": loaded,
+        "model_loaded": loaded,
+        "model_server_reachable": reachable,
+        "detail": "" if loaded else "model not loaded",
+    }
 
 
 # --------------------------------------------------------------------- model
 @app.get("/classes", response_model=list[ClassScore], tags=["model"])
 def classes():
     """All classes the current model can predict (probability field is 0)."""
-    return [ClassScore(label=lbl, display_name=display_name(lbl), probability=0.0)
-            for lbl in service.loaded.labels]
+    return [ClassScore(label=lbl, display_name=display_name(lbl), probability=0.0) for lbl in service.loaded.labels]
 
 
 @app.get("/model/info", response_model=ModelInfo, tags=["model"])
 def model_info():
     m = service.loaded
-    return ModelInfo(name=settings.model_name, alias=settings.model_alias, version=m.version, run_id=m.run_id,
-                     backbone=m.backbone, num_classes=len(m.labels), image_size=m.image_size,
-                     test_macro_f1=m.test_macro_f1, classes=m.labels)
+    return ModelInfo(
+        name=settings.model_name,
+        alias=settings.model_alias,
+        version=m.version,
+        run_id=m.run_id,
+        backbone=m.backbone,
+        num_classes=len(m.labels),
+        image_size=m.image_size,
+        test_macro_f1=m.test_macro_f1,
+        classes=m.labels,
+    )
 
 
 @app.post("/model/reload", response_model=ModelActionResponse, tags=["model"])
@@ -170,11 +193,21 @@ def model_rollback():
 
 
 # ---------------------------------------------------------------- inference
-@app.post("/predict", response_model=PredictionResponse, tags=["inference"],
-          responses={400: {"model": ErrorResponse}, 413: {"model": ErrorResponse},
-                     415: {"model": ErrorResponse}, 503: {"model": ErrorResponse}})
-async def predict(file: UploadFile = File(..., description="Leaf photo (JPG/PNG/WEBP, max 5 MB)"),
-                  explain: bool = Query(True, description="Include a Grad-CAM heatmap")):
+@app.post(
+    "/predict",
+    response_model=PredictionResponse,
+    tags=["inference"],
+    responses={
+        400: {"model": ErrorResponse},
+        413: {"model": ErrorResponse},
+        415: {"model": ErrorResponse},
+        503: {"model": ErrorResponse},
+    },
+)
+async def predict(
+    file: UploadFile = File(..., description="Leaf photo (JPG/PNG/WEBP, max 5 MB)"),
+    explain: bool = Query(True, description="Include a Grad-CAM heatmap"),
+):
     t0 = time.perf_counter()
     if file.content_type not in ALLOWED_TYPES:
         M.ERRORS.labels(type="bad_content_type").inc()
@@ -228,18 +261,31 @@ async def predict(file: UploadFile = File(..., description="Leaf photo (JPG/PNG/
     latency_ms = (time.perf_counter() - t0) * 1000
     logger.info("predict id=%s label=%s conf=%.3f backend=%s %.1fms", pid, label, conf, backend, latency_ms)
     return PredictionResponse(
-        prediction_id=pid, label=label, display_name=display_name(label),
-        is_healthy=label.endswith("healthy"), confidence=conf, low_confidence=low,
-        top3=[ClassScore(label=labels[i], display_name=display_name(labels[i]), probability=float(probs[i]))
-              for i in order[:3]],
-        heatmap_png_base64=heatmap, model_version=service.loaded.version, inference_backend=backend,
-        latency_ms=round(latency_ms, 1), input_quality={k: round(v, 2) for k, v in quality.items()},
+        prediction_id=pid,
+        label=label,
+        display_name=display_name(label),
+        is_healthy=label.endswith("healthy"),
+        confidence=conf,
+        low_confidence=low,
+        top3=[
+            ClassScore(label=labels[i], display_name=display_name(labels[i]), probability=float(probs[i]))
+            for i in order[:3]
+        ],
+        heatmap_png_base64=heatmap,
+        model_version=service.loaded.version,
+        inference_backend=backend,
+        latency_ms=round(latency_ms, 1),
+        input_quality={k: round(v, 2) for k, v in quality.items()},
         warnings=warnings,
     )
 
 
-@app.post("/feedback", response_model=FeedbackResponse, tags=["inference"],
-          responses={404: {"model": ErrorResponse}, 422: {"model": ErrorResponse}})
+@app.post(
+    "/feedback",
+    response_model=FeedbackResponse,
+    tags=["inference"],
+    responses={404: {"model": ErrorResponse}, 422: {"model": ErrorResponse}},
+)
 def feedback(body: FeedbackRequest):
     """User tells us the correct class -> live accuracy metric (drives the AccuracyDrop alert)."""
     if body.true_label not in service.loaded.labels:
@@ -311,23 +357,39 @@ def pipeline_status(limit: int = Query(10, ge=1, le=50)):
             experiment_id = exp.experiment_id
             for r in client.search_runs([exp.experiment_id], order_by=["start_time DESC"], max_results=limit):
                 end = r.info.end_time or int(time.time() * 1000)
-                runs.append({
-                    "run_id": r.info.run_id, "name": r.info.run_name, "status": r.info.status,
-                    "start_time": r.info.start_time, "duration_s": round((end - r.info.start_time) / 1000, 1),
-                    "git_commit": r.data.tags.get("git_commit", "")[:8],
-                    "val_macro_f1": r.data.metrics.get("best_val_macro_f1"),
-                    "test_macro_f1": r.data.metrics.get("test_macro_f1"),
-                    "train_seconds": r.data.metrics.get("train_total_seconds"),
-                })
+                runs.append(
+                    {
+                        "run_id": r.info.run_id,
+                        "name": r.info.run_name,
+                        "status": r.info.status,
+                        "start_time": r.info.start_time,
+                        "duration_s": round((end - r.info.start_time) / 1000, 1),
+                        "git_commit": r.data.tags.get("git_commit", "")[:8],
+                        "val_macro_f1": r.data.metrics.get("best_val_macro_f1"),
+                        "test_macro_f1": r.data.metrics.get("test_macro_f1"),
+                        "train_seconds": r.data.metrics.get("train_total_seconds"),
+                    }
+                )
         prod = service.production_version() if service.is_loaded else None
         for v in client.search_model_versions(f"name='{settings.model_name}'"):
-            versions.append({"version": v.version, "run_id": v.run_id, "created": v.creation_timestamp,
-                             "test_macro_f1": v.tags.get("test_macro_f1"),
-                             "rolled_back": v.tags.get("rolled_back") == "true",
-                             "is_production": v.version == prod})
+            versions.append(
+                {
+                    "version": v.version,
+                    "run_id": v.run_id,
+                    "created": v.creation_timestamp,
+                    "test_macro_f1": v.tags.get("test_macro_f1"),
+                    "rolled_back": v.tags.get("rolled_back") == "true",
+                    "is_production": v.version == prod,
+                }
+            )
         versions.sort(key=lambda v: int(v["version"]), reverse=True)
     except Exception as exc:
         logger.warning("mlflow query failed: %s", exc)
         M.ERRORS.labels(type="mlflow_query").inc()
-    return {"trainer": trainer, "runs": runs, "model_versions": versions, "experiment_id": experiment_id,
-            "served_version": service.loaded.version if service.is_loaded else None}
+    return {
+        "trainer": trainer,
+        "runs": runs,
+        "model_versions": versions,
+        "experiment_id": experiment_id,
+        "served_version": service.loaded.version if service.is_loaded else None,
+    }

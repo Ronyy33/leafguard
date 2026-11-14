@@ -20,8 +20,10 @@ class EncryptedStore:
         self.dir.mkdir(parents=True, exist_ok=True)
         if not key:
             key = Fernet.generate_key().decode()
-            logger.warning("ENCRYPTION_KEY not set; generated an ephemeral key (stored uploads "
-                           "will be unreadable after restart)")
+            logger.warning(
+                "ENCRYPTION_KEY not set; generated an ephemeral key (stored uploads "
+                "will be unreadable after restart)"
+            )
         self.fernet = Fernet(key.encode() if isinstance(key, str) else key)
 
     def save(self, item_id: str, data: bytes) -> Path:

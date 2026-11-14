@@ -1,0 +1,7 @@
+[flake8]
+max-line-length = 120
+extend-ignore = E203
+exclude = .venv,.git,.dvc,mlflow_store,data,notebooks
+per-file-ignores =
+    tests/*: E731
+    scripts/build_dashboard.py: E501

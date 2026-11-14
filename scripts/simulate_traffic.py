@@ -41,17 +41,26 @@ def one(api: str, path: Path, args) -> dict:
     data = degrade(path, args.darken, args.blur)
     true_label = path.parent.name
     t0 = time.perf_counter()
-    r = requests.post(f"{api}/predict", params={"explain": str(not args.no_explain).lower()},
-                      files={"file": (path.name, data, "image/jpeg")}, timeout=60)
+    r = requests.post(
+        f"{api}/predict",
+        params={"explain": str(not args.no_explain).lower()},
+        files={"file": (path.name, data, "image/jpeg")},
+        timeout=60,
+    )
     latency = time.perf_counter() - t0
     if r.status_code != 200:
         return {"ok": False, "status": r.status_code, "latency": latency}
     pred = r.json()
     if not args.no_feedback:
-        requests.post(f"{api}/feedback", json={"prediction_id": pred["prediction_id"], "true_label": true_label},
-                      timeout=10)
-    return {"ok": True, "correct": pred["label"] == true_label, "latency": latency,
-            "backend": pred["inference_backend"]}
+        requests.post(
+            f"{api}/feedback", json={"prediction_id": pred["prediction_id"], "true_label": true_label}, timeout=10
+        )
+    return {
+        "ok": True,
+        "correct": pred["label"] == true_label,
+        "latency": latency,
+        "backend": pred["inference_backend"],
+    }
 
 
 def main() -> None:

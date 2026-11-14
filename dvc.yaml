@@ -97,3 +97,21 @@ stages:
           cache: false
       - reports/classification_report.json:
           cache: false
+
+  test:
+    # CI gate: unit + integration tests (e2e tests skip unless LEAFGUARD_E2E=1)
+    cmd: mkdir -p reports/tests && python -m pytest --junitxml=reports/tests/junit.xml ; python scripts/test_report.py reports/tests/junit.xml
+    deps:
+      - src
+      - backend/app
+      - trainer/app.py
+      - tests
+      - scripts/test_report.py
+    outs:
+      - reports/tests/junit.xml:
+          cache: false
+      - reports/tests/test_cases.md:
+          cache: false
+    metrics:
+      - reports/test_summary.json:
+          cache: false

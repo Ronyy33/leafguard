@@ -106,8 +106,9 @@ class ModelService:
         )
         with self._lock:
             self._loaded = loaded
-        M.MODEL_INFO.info({"name": self.s.model_name, "version": loaded.version,
-                           "run_id": loaded.run_id, "backbone": loaded.backbone})
+        M.MODEL_INFO.info(
+            {"name": self.s.model_name, "version": loaded.version, "run_id": loaded.run_id, "backbone": loaded.backbone}
+        )
         M.MODEL_VERSION.set(float(loaded.version))
         M.MODEL_RELOADS.labels(reason=reason).inc()
         logger.info("loaded %s v%s (run %s) reason=%s", self.s.model_name, loaded.version, loaded.run_id, reason)
@@ -130,7 +131,7 @@ class ModelService:
             with Image.open(io.BytesIO(data)) as im:
                 im = im.convert("RGB")
                 size = self.loaded.image_size
-                return np.asarray(im.resize((size, size), Image.BILINEAR))
+                return np.array(im.resize((size, size), Image.BILINEAR))  # writable copy for torch
         except (UnidentifiedImageError, OSError) as exc:
             raise InvalidImageError("file is not a valid image") from exc
 
@@ -203,9 +204,7 @@ class ModelService:
     def rollback(self) -> str:
         """Point the alias at the newest registered version older than the current one."""
         current = int(self.production_version())
-        versions = sorted(
-            int(v.version) for v in self.client.search_model_versions(f"name='{self.s.model_name}'")
-        )
+        versions = sorted(int(v.version) for v in self.client.search_model_versions(f"name='{self.s.model_name}'"))
         older = [v for v in versions if v < current]
         if not older:
             raise RuntimeError(f"no version older than v{current} to roll back to")

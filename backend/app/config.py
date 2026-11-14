@@ -38,9 +38,7 @@ class Settings:
     low_confidence_threshold: float = float(_env("LOW_CONFIDENCE_THRESHOLD", "0.6"))
 
     # CORS: the frontend runs on a different origin (separate container)
-    cors_origins: list[str] = field(
-        default_factory=lambda: _env("CORS_ORIGINS", "*").split(",")
-    )
+    cors_origins: list[str] = field(default_factory=lambda: _env("CORS_ORIGINS", "*").split(","))
     log_level: str = _env("LOG_LEVEL", "INFO")
 
 

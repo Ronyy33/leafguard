@@ -25,6 +25,8 @@ CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--worker
 
 # ---------------------------------------------------------------- trainer
 FROM base AS trainer
+# the DVC `test` stage runs the test suite as part of the CI pipeline
+RUN pip install pytest==8.3.5 httpx==0.28.1
 WORKDIR /repo
 ENV REPO_DIR=/repo PYTHONPATH=/repo
 EXPOSE 8001

@@ -111,17 +111,25 @@ def main() -> None:
     mlflow.autolog(log_models=False, silent=True)
 
     with mlflow.start_run(run_name=f"{tp['backbone']}-lr{tp['lr']}") as run:
-        mlflow.set_tags({
-            "git_commit": git_commit(),
-            "dvc_data_md5": dvc_data_hash(),
-            "backbone": tp["backbone"],
-            "host": platform.node(),
-            "stage": "train",
-        })
+        mlflow.set_tags(
+            {
+                "git_commit": git_commit(),
+                "dvc_data_md5": dvc_data_hash(),
+                "backbone": tp["backbone"],
+                "host": platform.node(),
+                "stage": "train",
+            }
+        )
         mlflow.log_params({f"train.{k}": v for k, v in tp.items()})
         mlflow.log_params({f"data.{k}": v for k, v in params["data"].items()})
-        mlflow.log_params({"num_classes": len(labels), "train_size": len(train_ds), "val_size": len(val_ds),
-                           "trainable_params": sum(p.numel() for p in model.parameters() if p.requires_grad)})
+        mlflow.log_params(
+            {
+                "num_classes": len(labels),
+                "train_size": len(train_ds),
+                "val_size": len(val_ds),
+                "trainable_params": sum(p.numel() for p in model.parameters() if p.requires_grad),
+            }
+        )
 
         best_f1, t_start = -1.0, time.time()
         for epoch in range(1, tp["epochs"] + 1):
@@ -129,11 +137,27 @@ def main() -> None:
             tr_loss, tr_acc, _ = run_epoch(model, train_dl, loss_fn, optimizer)
             va_loss, va_acc, va_f1 = run_epoch(model, val_dl, loss_fn)
             dt = time.time() - t0
-            mlflow.log_metrics({"train_loss": tr_loss, "train_acc": tr_acc, "val_loss": va_loss,
-                                "val_acc": va_acc, "val_macro_f1": va_f1, "epoch_seconds": dt,
-                                "train_images_per_sec": len(train_ds) / dt}, step=epoch)
-            logger.info("epoch %d/%d loss=%.4f val_acc=%.4f val_f1=%.4f (%.1fs)",
-                        epoch, tp["epochs"], tr_loss, va_acc, va_f1, dt)
+            mlflow.log_metrics(
+                {
+                    "train_loss": tr_loss,
+                    "train_acc": tr_acc,
+                    "val_loss": va_loss,
+                    "val_acc": va_acc,
+                    "val_macro_f1": va_f1,
+                    "epoch_seconds": dt,
+                    "train_images_per_sec": len(train_ds) / dt,
+                },
+                step=epoch,
+            )
+            logger.info(
+                "epoch %d/%d loss=%.4f val_acc=%.4f val_f1=%.4f (%.1fs)",
+                epoch,
+                tp["epochs"],
+                tr_loss,
+                va_acc,
+                va_f1,
+                dt,
+            )
             if va_f1 > best_f1:
                 best_f1 = va_f1
                 MODELS.mkdir(exist_ok=True)
@@ -150,8 +174,9 @@ def main() -> None:
         with torch.no_grad():
             signature = infer_signature(example, model(torch.from_numpy(example)).numpy())
         # code_paths bundles src/ so `mlflow models serve` can unpickle LeafNet without the repo
-        mlflow.pytorch.log_model(model, artifact_path="model", signature=signature, input_example=example,
-                                 code_paths=["src"])
+        mlflow.pytorch.log_model(
+            model, artifact_path="model", signature=signature, input_example=example, code_paths=["src"]
+        )
 
         for f in ("labels.json", "baseline_stats.json"):
             mlflow.log_artifact(str(PROCESSED / f), artifact_path="meta")
@@ -163,8 +188,14 @@ def main() -> None:
         (MODELS / "run_id.txt").write_text(run.info.run_id)
         model_meta = {"backbone": tp["backbone"], "num_classes": len(labels), "image_size": size}
         (MODELS / "model_meta.json").write_text(json.dumps(model_meta))
-        write_json({"best_val_macro_f1": round(best_f1, 4), "train_total_seconds": round(total, 1),
-                    "mlflow_run_id": run.info.run_id}, "reports/train_metrics.json")
+        write_json(
+            {
+                "best_val_macro_f1": round(best_f1, 4),
+                "train_total_seconds": round(total, 1),
+                "mlflow_run_id": run.info.run_id,
+            },
+            "reports/train_metrics.json",
+        )
         logger.info("training done: best val F1 %.4f, run %s", best_f1, run.info.run_id)
 
 

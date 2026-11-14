@@ -27,8 +27,13 @@ import mlflow  # noqa: E402
 import numpy as np  # noqa: E402
 import torch  # noqa: E402
 from mlflow import MlflowClient  # noqa: E402
-from sklearn.metrics import (ConfusionMatrixDisplay, accuracy_score, classification_report,  # noqa: E402
-                             confusion_matrix, f1_score)
+from sklearn.metrics import (  # noqa: E402
+    ConfusionMatrixDisplay,
+    accuracy_score,
+    classification_report,  # noqa: E402
+    confusion_matrix,
+    f1_score,
+)
 
 from src.train.model import LeafNet  # noqa: E402
 from src.utils import get_logger, load_params, write_json  # noqa: E402
@@ -42,7 +47,7 @@ def predict(model: torch.nn.Module, X: np.ndarray, batch: int = 128) -> np.ndarr
     out = []
     with torch.no_grad():
         for i in range(0, len(X), batch):
-            x = torch.from_numpy(X[i:i + batch]).permute(0, 3, 1, 2).float() / 255.0
+            x = torch.from_numpy(X[i : i + batch]).permute(0, 3, 1, 2).float() / 255.0
             out.append(model(x).argmax(1).numpy())
     return np.concatenate(out)
 
@@ -78,7 +83,8 @@ def main() -> None:
     write_json(report, "reports/classification_report.json")
     fig, ax = plt.subplots(figsize=(9, 8))
     ConfusionMatrixDisplay(confusion_matrix(y_true, y_pred), display_labels=names).plot(
-        ax=ax, xticks_rotation=90, colorbar=False, cmap="Greens")
+        ax=ax, xticks_rotation=90, colorbar=False, cmap="Greens"
+    )
     fig.tight_layout()
     fig.savefig("reports/confusion_matrix.png", dpi=110)
     plt.close(fig)
@@ -102,10 +108,17 @@ def main() -> None:
     else:
         logger.warning("v%s NOT promoted (F1 %.4f, gate %.2f, prod %.4f)", mv.version, f1, gate, prod_f1)
 
-    write_json({"test_macro_f1": round(f1, 4), "test_accuracy": round(acc, 4),
-                "test_min_class_recall": round(min_recall, 4), "model_version": int(mv.version),
-                "promoted": promoted, "previous_production_f1": round(prod_f1, 4)},
-               "reports/eval_metrics.json")
+    write_json(
+        {
+            "test_macro_f1": round(f1, 4),
+            "test_accuracy": round(acc, 4),
+            "test_min_class_recall": round(min_recall, 4),
+            "model_version": int(mv.version),
+            "promoted": promoted,
+            "previous_production_f1": round(prod_f1, 4),
+        },
+        "reports/eval_metrics.json",
+    )
 
 
 if __name__ == "__main__":

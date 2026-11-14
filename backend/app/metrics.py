@@ -7,11 +7,15 @@ from prometheus_client import Counter, Gauge, Histogram, Info, Summary
 
 REQUESTS = Counter("leafguard_requests_total", "HTTP requests", ["endpoint", "method", "status"])
 LATENCY = Histogram(
-    "leafguard_request_latency_seconds", "HTTP request latency", ["endpoint"],
+    "leafguard_request_latency_seconds",
+    "HTTP request latency",
+    ["endpoint"],
     buckets=(0.01, 0.025, 0.05, 0.1, 0.2, 0.3, 0.5, 1, 2, 5),
 )
 INFERENCE_LATENCY = Histogram(
-    "leafguard_inference_latency_seconds", "Model inference latency only", ["backend"],
+    "leafguard_inference_latency_seconds",
+    "Model inference latency only",
+    ["backend"],
     buckets=(0.005, 0.01, 0.025, 0.05, 0.1, 0.2, 0.5, 1, 2),
 )
 ERRORS = Counter("leafguard_errors_total", "Errors by type", ["type"])
@@ -19,7 +23,8 @@ INPUT_BYTES = Summary("leafguard_input_bytes", "Size of uploaded images in bytes
 
 PREDICTIONS = Counter("leafguard_predictions_total", "Predictions per class", ["label"])
 CONFIDENCE = Histogram(
-    "leafguard_prediction_confidence", "Top-1 confidence",
+    "leafguard_prediction_confidence",
+    "Top-1 confidence",
     buckets=(0.3, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99, 1.0),
 )
 LOW_CONFIDENCE = Counter("leafguard_low_confidence_total", "Predictions below the confidence threshold")
