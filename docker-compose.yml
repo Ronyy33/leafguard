@@ -71,7 +71,9 @@ services:
       GIT_CONFIG_COUNT: "1"
       GIT_CONFIG_KEY_0: safe.directory
       GIT_CONFIG_VALUE_0: "*"
-    volumes: [".:/repo"]       # the Git + DVC repo itself
+    volumes:
+      - .:/repo                                  # the Git + DVC repo itself
+      - ${HOME}/.cache/torch:/tmp/torch          # pretrained weights cache (no re-download per retrain)
     depends_on:
       mlflow: {condition: service_healthy}
 

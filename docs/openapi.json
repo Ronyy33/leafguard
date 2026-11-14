@@ -1,0 +1,1030 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "LeafGuard API",
+        "description": "Plant leaf disease detection with drift monitoring and automated retraining.",
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/health": {
+            "get": {
+                "tags": [
+                    "ops"
+                ],
+                "summary": "Health",
+                "description": "Liveness: the process is up.",
+                "operationId": "health_health_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HealthResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/ready": {
+            "get": {
+                "tags": [
+                    "ops"
+                ],
+                "summary": "Ready",
+                "description": "Readiness: a model is loaded (model server reachability is informational; local fallback exists).",
+                "operationId": "ready_ready_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReadyResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/classes": {
+            "get": {
+                "tags": [
+                    "model"
+                ],
+                "summary": "Classes",
+                "description": "All classes the current model can predict (probability field is 0).",
+                "operationId": "classes_classes_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "items": {
+                                        "$ref": "#/components/schemas/ClassScore"
+                                    },
+                                    "type": "array",
+                                    "title": "Response Classes Classes Get"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/model/info": {
+            "get": {
+                "tags": [
+                    "model"
+                ],
+                "summary": "Model Info",
+                "operationId": "model_info_model_info_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ModelInfo"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/model/reload": {
+            "post": {
+                "tags": [
+                    "model"
+                ],
+                "summary": "Model Reload",
+                "description": "Reload whatever version the registry alias points to now.",
+                "operationId": "model_reload_model_reload_post",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ModelActionResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/model/rollback": {
+            "post": {
+                "tags": [
+                    "model"
+                ],
+                "summary": "Model Rollback",
+                "description": "Move @production to the previous registered version and load it.",
+                "operationId": "model_rollback_model_rollback_post",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ModelActionResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/predict": {
+            "post": {
+                "tags": [
+                    "inference"
+                ],
+                "summary": "Predict",
+                "operationId": "predict_predict_post",
+                "parameters": [
+                    {
+                        "name": "explain",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "description": "Include a Grad-CAM heatmap",
+                            "default": true,
+                            "title": "Explain"
+                        },
+                        "description": "Include a Grad-CAM heatmap"
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Body_predict_predict_post"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PredictionResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "413": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Request Entity Too Large"
+                    },
+                    "415": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Unsupported Media Type"
+                    },
+                    "503": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Service Unavailable"
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/feedback": {
+            "post": {
+                "tags": [
+                    "inference"
+                ],
+                "summary": "Feedback",
+                "description": "User tells us the correct class -> live accuracy metric (drives the AccuracyDrop alert).",
+                "operationId": "feedback_feedback_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/FeedbackRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/FeedbackResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/drift": {
+            "get": {
+                "tags": [
+                    "monitoring"
+                ],
+                "summary": "Drift",
+                "operationId": "drift_drift_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DriftStatus"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/drift/reset": {
+            "post": {
+                "tags": [
+                    "monitoring"
+                ],
+                "summary": "Drift Reset",
+                "operationId": "drift_reset_drift_reset_post",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DriftStatus"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/retrain/trigger": {
+            "post": {
+                "tags": [
+                    "pipeline"
+                ],
+                "summary": "Retrain Trigger",
+                "description": "Start `dvc repro` on the trainer service (409-style accepted=false if already running).",
+                "operationId": "retrain_trigger_retrain_trigger_post",
+                "parameters": [
+                    {
+                        "name": "reason",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 200,
+                            "default": "manual",
+                            "title": "Reason"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RetrainResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/alerts/webhook": {
+            "post": {
+                "tags": [
+                    "pipeline"
+                ],
+                "summary": "Alert Webhook",
+                "description": "Alertmanager webhook receiver: firing drift/accuracy alerts trigger retraining.",
+                "operationId": "alert_webhook_alerts_webhook_post",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/pipeline/status": {
+            "get": {
+                "tags": [
+                    "pipeline"
+                ],
+                "summary": "Pipeline Status",
+                "description": "Pipeline console data: trainer state + recent MLflow runs + registry versions.",
+                "operationId": "pipeline_status_pipeline_status_get",
+                "parameters": [
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 50,
+                            "minimum": 1,
+                            "default": 10,
+                            "title": "Limit"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "Body_predict_predict_post": {
+                "properties": {
+                    "file": {
+                        "type": "string",
+                        "format": "binary",
+                        "title": "File",
+                        "description": "Leaf photo (JPG/PNG/WEBP, max 5 MB)"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "file"
+                ],
+                "title": "Body_predict_predict_post"
+            },
+            "ClassScore": {
+                "properties": {
+                    "label": {
+                        "type": "string",
+                        "title": "Label",
+                        "examples": [
+                            "Tomato___Late_blight"
+                        ]
+                    },
+                    "display_name": {
+                        "type": "string",
+                        "title": "Display Name",
+                        "examples": [
+                            "Tomato \u2013 Late blight"
+                        ]
+                    },
+                    "probability": {
+                        "type": "number",
+                        "maximum": 1.0,
+                        "minimum": 0.0,
+                        "title": "Probability"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "label",
+                    "display_name",
+                    "probability"
+                ],
+                "title": "ClassScore"
+            },
+            "DriftStatus": {
+                "properties": {
+                    "window_size": {
+                        "type": "integer",
+                        "title": "Window Size"
+                    },
+                    "samples_in_window": {
+                        "type": "integer",
+                        "title": "Samples In Window"
+                    },
+                    "zscores": {
+                        "additionalProperties": {
+                            "type": "number"
+                        },
+                        "type": "object",
+                        "title": "Zscores"
+                    },
+                    "drifting_features": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "title": "Drifting Features"
+                    },
+                    "threshold": {
+                        "type": "number",
+                        "title": "Threshold"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "window_size",
+                    "samples_in_window",
+                    "zscores",
+                    "drifting_features",
+                    "threshold"
+                ],
+                "title": "DriftStatus"
+            },
+            "ErrorResponse": {
+                "properties": {
+                    "error": {
+                        "type": "string",
+                        "title": "Error"
+                    },
+                    "detail": {
+                        "type": "string",
+                        "title": "Detail"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "error",
+                    "detail"
+                ],
+                "title": "ErrorResponse"
+            },
+            "FeedbackRequest": {
+                "properties": {
+                    "prediction_id": {
+                        "type": "string",
+                        "title": "Prediction Id"
+                    },
+                    "true_label": {
+                        "type": "string",
+                        "title": "True Label",
+                        "description": "Correct class name (one of GET /classes)"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "prediction_id",
+                    "true_label"
+                ],
+                "title": "FeedbackRequest"
+            },
+            "FeedbackResponse": {
+                "properties": {
+                    "accepted": {
+                        "type": "boolean",
+                        "title": "Accepted"
+                    },
+                    "correct": {
+                        "type": "boolean",
+                        "title": "Correct"
+                    },
+                    "rolling_accuracy": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Rolling Accuracy"
+                    },
+                    "feedback_count": {
+                        "type": "integer",
+                        "title": "Feedback Count"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "accepted",
+                    "correct",
+                    "rolling_accuracy",
+                    "feedback_count"
+                ],
+                "title": "FeedbackResponse"
+            },
+            "HTTPValidationError": {
+                "properties": {
+                    "detail": {
+                        "items": {
+                            "$ref": "#/components/schemas/ValidationError"
+                        },
+                        "type": "array",
+                        "title": "Detail"
+                    }
+                },
+                "type": "object",
+                "title": "HTTPValidationError"
+            },
+            "HealthResponse": {
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "const": "ok",
+                        "title": "Status"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "status"
+                ],
+                "title": "HealthResponse"
+            },
+            "ModelActionResponse": {
+                "properties": {
+                    "ok": {
+                        "type": "boolean",
+                        "title": "Ok"
+                    },
+                    "detail": {
+                        "type": "string",
+                        "title": "Detail"
+                    },
+                    "version": {
+                        "type": "string",
+                        "title": "Version"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "ok",
+                    "detail",
+                    "version"
+                ],
+                "title": "ModelActionResponse"
+            },
+            "ModelInfo": {
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "title": "Name"
+                    },
+                    "alias": {
+                        "type": "string",
+                        "title": "Alias"
+                    },
+                    "version": {
+                        "type": "string",
+                        "title": "Version"
+                    },
+                    "run_id": {
+                        "type": "string",
+                        "title": "Run Id"
+                    },
+                    "backbone": {
+                        "type": "string",
+                        "title": "Backbone"
+                    },
+                    "num_classes": {
+                        "type": "integer",
+                        "title": "Num Classes"
+                    },
+                    "image_size": {
+                        "type": "integer",
+                        "title": "Image Size"
+                    },
+                    "test_macro_f1": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Test Macro F1"
+                    },
+                    "classes": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "title": "Classes"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "name",
+                    "alias",
+                    "version",
+                    "run_id",
+                    "backbone",
+                    "num_classes",
+                    "image_size",
+                    "test_macro_f1",
+                    "classes"
+                ],
+                "title": "ModelInfo"
+            },
+            "PredictionResponse": {
+                "properties": {
+                    "prediction_id": {
+                        "type": "string",
+                        "title": "Prediction Id",
+                        "description": "Use this id when sending feedback"
+                    },
+                    "label": {
+                        "type": "string",
+                        "title": "Label"
+                    },
+                    "display_name": {
+                        "type": "string",
+                        "title": "Display Name"
+                    },
+                    "is_healthy": {
+                        "type": "boolean",
+                        "title": "Is Healthy"
+                    },
+                    "confidence": {
+                        "type": "number",
+                        "maximum": 1.0,
+                        "minimum": 0.0,
+                        "title": "Confidence"
+                    },
+                    "low_confidence": {
+                        "type": "boolean",
+                        "title": "Low Confidence",
+                        "description": "True if confidence is below the configured threshold"
+                    },
+                    "top3": {
+                        "items": {
+                            "$ref": "#/components/schemas/ClassScore"
+                        },
+                        "type": "array",
+                        "title": "Top3"
+                    },
+                    "heatmap_png_base64": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Heatmap Png Base64",
+                        "description": "Grad-CAM overlay (PNG, base64)"
+                    },
+                    "model_version": {
+                        "type": "string",
+                        "title": "Model Version"
+                    },
+                    "inference_backend": {
+                        "type": "string",
+                        "enum": [
+                            "mlflow_serve",
+                            "local"
+                        ],
+                        "title": "Inference Backend"
+                    },
+                    "latency_ms": {
+                        "type": "number",
+                        "title": "Latency Ms"
+                    },
+                    "input_quality": {
+                        "additionalProperties": {
+                            "type": "number"
+                        },
+                        "type": "object",
+                        "title": "Input Quality",
+                        "description": "brightness / blur stats of the upload"
+                    },
+                    "warnings": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "title": "Warnings",
+                        "default": []
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "prediction_id",
+                    "label",
+                    "display_name",
+                    "is_healthy",
+                    "confidence",
+                    "low_confidence",
+                    "top3",
+                    "model_version",
+                    "inference_backend",
+                    "latency_ms",
+                    "input_quality"
+                ],
+                "title": "PredictionResponse"
+            },
+            "ReadyResponse": {
+                "properties": {
+                    "ready": {
+                        "type": "boolean",
+                        "title": "Ready"
+                    },
+                    "model_loaded": {
+                        "type": "boolean",
+                        "title": "Model Loaded"
+                    },
+                    "model_server_reachable": {
+                        "type": "boolean",
+                        "title": "Model Server Reachable"
+                    },
+                    "detail": {
+                        "type": "string",
+                        "title": "Detail",
+                        "default": ""
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "ready",
+                    "model_loaded",
+                    "model_server_reachable"
+                ],
+                "title": "ReadyResponse"
+            },
+            "RetrainResponse": {
+                "properties": {
+                    "accepted": {
+                        "type": "boolean",
+                        "title": "Accepted"
+                    },
+                    "detail": {
+                        "type": "string",
+                        "title": "Detail"
+                    },
+                    "state": {
+                        "additionalProperties": true,
+                        "type": "object",
+                        "title": "State"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "accepted",
+                    "detail",
+                    "state"
+                ],
+                "title": "RetrainResponse"
+            },
+            "ValidationError": {
+                "properties": {
+                    "loc": {
+                        "items": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ]
+                        },
+                        "type": "array",
+                        "title": "Location"
+                    },
+                    "msg": {
+                        "type": "string",
+                        "title": "Message"
+                    },
+                    "type": {
+                        "type": "string",
+                        "title": "Error Type"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "loc",
+                    "msg",
+                    "type"
+                ],
+                "title": "ValidationError"
+            }
+        }
+    }
+}
