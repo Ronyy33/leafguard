@@ -32,7 +32,7 @@ from torch import nn
 from torch.utils.data import DataLoader, Dataset
 
 from src.train.model import LeafNet
-from src.utils import get_logger, git_commit, load_params, write_json
+from src.utils import get_logger, git_commit, git_dirty, load_params, write_json
 
 logger = get_logger("train")
 PROCESSED = Path("data/processed")
@@ -114,6 +114,7 @@ def main() -> None:
         mlflow.set_tags(
             {
                 "git_commit": git_commit(),
+                "git_dirty": git_dirty(),  # true => params/code differ from the commit (see params logged)
                 "dvc_data_md5": dvc_data_hash(),
                 "backbone": tp["backbone"],
                 "host": platform.node(),

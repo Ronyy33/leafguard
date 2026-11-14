@@ -42,3 +42,12 @@ def git_commit() -> str:
         return subprocess.check_output(["git", "rev-parse", "HEAD"], text=True, stderr=subprocess.DEVNULL).strip()
     except Exception:
         return "unknown"
+
+
+def git_dirty() -> str:
+    """'true' if tracked files differ from HEAD (e.g. params changed by `dvc exp run -S`)."""
+    try:
+        out = subprocess.check_output(["git", "status", "--porcelain", "-uno"], text=True, stderr=subprocess.DEVNULL)
+        return str(bool(out.strip())).lower()
+    except Exception:
+        return "unknown"
