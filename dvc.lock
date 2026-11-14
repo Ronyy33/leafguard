@@ -1,0 +1,113 @@
+schema: '2.0'
+stages:
+  eda:
+    cmd: python -m src.data.eda
+    deps:
+    - path: data/raw
+      hash: md5
+      md5: d53bdfd0dfd7d62fe9921a9e7d3bf029.dir
+      size: 46423788
+      nfiles: 2852
+    - path: src/data/eda.py
+      hash: md5
+      md5: 84d45827066708c993fe38b275c71c0f
+      size: 3801
+    - path: src/monitoring/drift.py
+      hash: md5
+      md5: 5c1524de46035e40ffa974808e3cad3d
+      size: 3368
+    params:
+      params.yaml:
+        data.raw_dir: data/raw
+    outs:
+    - path: reports/eda/brightness_blur.png
+      hash: md5
+      md5: e03c27f79d1c68c19339ffcc6230119d
+      size: 28849
+    - path: reports/eda/class_balance.png
+      hash: md5
+      md5: 1b3b7da8b947dedb68ff26faf9ff10f5
+      size: 40617
+    - path: reports/eda/eda_summary.json
+      hash: md5
+      md5: 71245cd524a9645ca8bb97c054a8563e
+      size: 5801
+  ingest:
+    cmd: python -m src.data.ingest
+    deps:
+    - path: data/raw
+      hash: md5
+      md5: d53bdfd0dfd7d62fe9921a9e7d3bf029.dir
+      size: 46423788
+      nfiles: 2852
+    - path: src/data/ingest.py
+      hash: md5
+      md5: a594fa82ac4cd714f5d4b97dce290980
+      size: 2270
+    params:
+      params.yaml:
+        data.raw_dir: data/raw
+    outs:
+    - path: data/interim/manifest.csv
+      hash: md5
+      md5: a6bdfda56c1ca1efc0a6a8f389c72a94
+      size: 506293
+    - path: reports/ingest_metrics.json
+      hash: md5
+      md5: c4e02ed252a6fdb6407458608ac9c233
+      size: 109
+  validate:
+    cmd: python -m src.data.validate
+    deps:
+    - path: data/interim/manifest.csv
+      hash: md5
+      md5: a6bdfda56c1ca1efc0a6a8f389c72a94
+      size: 506293
+    - path: src/data/validate.py
+      hash: md5
+      md5: 84fcd5062c720e5ba8cee89f49a4f209
+      size: 3387
+    params:
+      params.yaml:
+        data.min_height: 64
+        data.min_width: 64
+    outs:
+    - path: data/interim/valid.csv
+      hash: md5
+      md5: 41a32d78e083d51171e405e0feb1274d
+      size: 506127
+    - path: reports/validation.json
+      hash: md5
+      md5: dedffd4c0d060721839ae7c98ce9acb9
+      size: 730
+  preprocess:
+    cmd: python -m src.data.preprocess
+    deps:
+    - path: data/interim/valid.csv
+      hash: md5
+      md5: 41a32d78e083d51171e405e0feb1274d
+      size: 506127
+    - path: src/data/preprocess.py
+      hash: md5
+      md5: 7fd0a6145b11b2894c46ce2723982765
+      size: 3867
+    - path: src/monitoring/drift.py
+      hash: md5
+      md5: 5c1524de46035e40ffa974808e3cad3d
+      size: 3368
+    params:
+      params.yaml:
+        data.image_size: 128
+        data.seed: 42
+        data.test_split: 0.15
+        data.val_split: 0.15
+    outs:
+    - path: data/processed
+      hash: md5
+      md5: 1ffe1e66609b99888cfd6970ee42fc37.dir
+      size: 100540901
+      nfiles: 5
+    - path: reports/preprocess_metrics.json
+      hash: md5
+      md5: 817d9e304dd1ef31502414bd2cf0b247
+      size: 202

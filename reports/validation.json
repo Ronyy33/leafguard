@@ -1,0 +1,30 @@
+{
+  "validated_files": 2852,
+  "valid_files": 2851,
+  "bad_files": 1,
+  "bad_fraction": 0.0004,
+  "issues_by_type": {
+    "duplicate": 1
+  },
+  "bad_examples": [
+    {
+      "path": "data/raw/Apple___healthy/13298d36-4425-437d-ae8e-c7d70e200084___RS_HL 6271.JPG",
+      "issue": "duplicate"
+    }
+  ],
+  "empty_classes": [],
+  "class_counts": {
+    "Apple___Apple_scab": 300,
+    "Apple___healthy": 299,
+    "Potato___Early_blight": 300,
+    "Potato___Late_blight": 300,
+    "Potato___healthy": 152,
+    "Tomato___Bacterial_spot": 300,
+    "Tomato___Early_blight": 300,
+    "Tomato___Late_blight": 300,
+    "Tomato___Leaf_Mold": 300,
+    "Tomato___healthy": 300
+  },
+  "validate_seconds": 4.23,
+  "validate_files_per_sec": 674.9
+}

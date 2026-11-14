@@ -1,0 +1,29 @@
+# Single source of truth for every tunable value in the pipeline.
+# DVC tracks changes to these keys; MLflow logs them per run.
+
+data:
+  raw_dir: data/raw
+  processed_dir: data/processed
+  image_size: 128          # images are resized to image_size x image_size
+  min_width: 64            # validation: reject smaller images
+  min_height: 64
+  val_split: 0.15
+  test_split: 0.15
+  seed: 42
+
+train:
+  backbone: mobilenet_v2   # mobilenet_v2 | resnet18
+  epochs: 5
+  batch_size: 32
+  lr: 0.001
+  freeze_backbone: true
+  augment: true
+  num_workers: 2
+
+evaluate:
+  min_macro_f1: 0.90       # acceptance criterion / promotion gate
+
+monitoring:
+  brightness_z_threshold: 3.0   # drift alert if |z| of rolling brightness exceeds this
+  blur_z_threshold: 3.0
+  window: 50                    # number of recent requests in the rolling window

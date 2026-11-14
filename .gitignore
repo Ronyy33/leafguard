@@ -1,0 +1,25 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Logs / runtime
+logs/
+*.log
+
+# MLflow local store (tracked by MLflow itself, not Git)
+mlruns/
+mlartifacts/
+mlflow.db
+
+# Ray
+/tmp/ray/
+
+# Secrets
+.env
+*.key
+
+# OS
+.DS_Store

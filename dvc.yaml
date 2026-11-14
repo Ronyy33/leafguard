@@ -1,0 +1,99 @@
+# LeafGuard CI pipeline (DVC DAG).  Run everything with:  dvc repro
+# Visualise with:  dvc dag
+stages:
+  eda:
+    cmd: python -m src.data.eda
+    deps:
+      - data/raw
+      - src/data/eda.py
+      - src/monitoring/drift.py
+    params:
+      - data.raw_dir
+    outs:
+      - reports/eda/class_balance.png:
+          cache: false
+      - reports/eda/brightness_blur.png:
+          cache: false
+    metrics:
+      - reports/eda/eda_summary.json:
+          cache: false
+
+  ingest:
+    cmd: python -m src.data.ingest
+    deps:
+      - data/raw
+      - src/data/ingest.py
+    params:
+      - data.raw_dir
+    outs:
+      - data/interim/manifest.csv
+    metrics:
+      - reports/ingest_metrics.json:
+          cache: false
+
+  validate:
+    cmd: python -m src.data.validate
+    deps:
+      - data/interim/manifest.csv
+      - src/data/validate.py
+    params:
+      - data.min_width
+      - data.min_height
+    outs:
+      - data/interim/valid.csv
+    metrics:
+      - reports/validation.json:
+          cache: false
+
+  preprocess:
+    cmd: python -m src.data.preprocess
+    deps:
+      - data/interim/valid.csv
+      - src/data/preprocess.py
+      - src/monitoring/drift.py
+    params:
+      - data.image_size
+      - data.val_split
+      - data.test_split
+      - data.seed
+    outs:
+      - data/processed
+    metrics:
+      - reports/preprocess_metrics.json:
+          cache: false
+
+  train:
+    cmd: python -m src.train.train
+    deps:
+      - data/processed
+      - src/train/train.py
+      - src/train/model.py
+    params:
+      - train
+    outs:
+      - models/model.pt
+      - models/run_id.txt:
+          cache: false
+      - models/model_meta.json:
+          cache: false
+    metrics:
+      - reports/train_metrics.json:
+          cache: false
+
+  evaluate:
+    cmd: python -m src.train.evaluate
+    deps:
+      - models/model.pt
+      - models/run_id.txt
+      - data/processed
+      - src/train/evaluate.py
+    params:
+      - evaluate.min_macro_f1
+    plots:
+      - reports/confusion_matrix.png:
+          cache: false
+    metrics:
+      - reports/eval_metrics.json:
+          cache: false
+      - reports/classification_report.json:
+          cache: false

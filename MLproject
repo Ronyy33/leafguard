@@ -1,0 +1,24 @@
+name: leafguard
+
+# Identical environment for dev and test: `mlflow run .` builds a virtualenv
+# from python_env.yaml (pinned requirements) before running any entry point.
+python_env: python_env.yaml
+
+entry_points:
+  main:
+    # full pipeline through DVC (ingest -> validate -> preprocess -> train -> evaluate)
+    command: "dvc repro"
+
+  train:
+    parameters:
+      backbone: {type: string, default: mobilenet_v2}
+      epochs: {type: float, default: 5}
+      lr: {type: float, default: 0.001}
+    # dvc exp run lets MLflow override params.yaml while keeping DVC lineage
+    command: "dvc exp run -S train.backbone={backbone} -S train.epochs={epochs} -S train.lr={lr}"
+
+  preprocess:
+    command: "dvc repro preprocess"
+
+  evaluate:
+    command: "python -m src.train.evaluate"

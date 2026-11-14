@@ -1,0 +1,10 @@
+{
+  "preprocess_images": 2851,
+  "train_size": 1995,
+  "val_size": 428,
+  "test_size": 428,
+  "num_classes": 10,
+  "image_size": 128,
+  "preprocess_seconds": 3.99,
+  "preprocess_images_per_sec": 715.2
+}
