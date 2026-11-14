@@ -33,6 +33,7 @@ REPO = Path(os.getenv("REPO_DIR", ".")).resolve()
 COMMAND = os.getenv("RETRAIN_COMMAND", "dvc repro -f evaluate").split()
 COOLDOWN_S = int(os.getenv("RETRAIN_COOLDOWN_S", "600"))
 STAGE_RE = re.compile(r"Running stage '([^']+)'")
+ANSI_RE = re.compile(r"\x1b\[[0-9;?]*[A-Za-z]|\r")
 
 RUNS = Counter("leafguard_pipeline_runs_total", "Pipeline runs", ["status"])
 RUNNING = Gauge("leafguard_pipeline_running", "1 while the pipeline is running")
@@ -81,8 +82,8 @@ class Trainer:
                 COMMAND, cwd=REPO, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1
             )
             for line in proc.stdout:
-                line = line.rstrip()
-                if not line or "row/s" in line:  # skip Ray progress-bar noise
+                line = ANSI_RE.sub("", line).strip()
+                if not line or "row/s" in line or "row [" in line:  # skip Ray progress-bar noise
                     continue
                 self.log_tail.append(line)
                 m = STAGE_RE.search(line)
