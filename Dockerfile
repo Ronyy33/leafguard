@@ -27,6 +27,11 @@ CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--worker
 FROM base AS trainer
 # the DVC `test` stage runs the test suite as part of the CI pipeline
 RUN pip install pytest==8.3.5 httpx==0.28.1
+# runs as the host user (compose `user:`) so files written into the bind-mounted repo stay
+# owned by them; DVC needs a passwd entry for that uid
+ARG APP_UID=1000
+ARG APP_GID=1000
+RUN groupadd -g ${APP_GID} app 2>/dev/null || true; useradd -m -u ${APP_UID} -g ${APP_GID} -s /bin/bash app
 WORKDIR /repo
 ENV REPO_DIR=/repo PYTHONPATH=/repo
 EXPOSE 8001

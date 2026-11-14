@@ -23,6 +23,9 @@ The dot in the top-right corner shows the service status:
 
 ## Checking a leaf
 
+![Check a leaf page](img/ui_index.png)
+
+
 1. **Take a good photo.**
    - Photograph one leaf, filling most of the frame.
    - Use daylight, and avoid dark shade and strong flash.
@@ -38,6 +41,8 @@ The dot in the top-right corner shows the service status:
    - **Where the model looked** colours your photo. Red areas mattered most to the decision.
 5. **Tell us if it was right.** Click **Yes, correct**, or click **No, it's wrong** and choose the right answer from the list. This keeps the system accurate.
 6. Click **Start over** to check another leaf.
+
+![A result: disease, confidence, other possibilities and the heatmap](img/ui_result.png)
 
 ## Messages you might see
 
@@ -83,5 +88,7 @@ docker compose ps                # every service should be "running"/"healthy"
 | **Run pipeline now** | Retrains from scratch. The new model goes live only if it is at least as accurate. |
 | **Roll back model** | Returns to the previous version. Click twice to confirm. |
 | Live monitoring | Traffic, response times, errors and drift. |
+
+![Pipeline console](img/ui_pipeline.png)
 
 **Stopping the system:** `docker compose down`. Your data and models are kept.

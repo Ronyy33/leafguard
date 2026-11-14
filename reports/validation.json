@@ -25,6 +25,6 @@
     "Tomato___Leaf_Mold": 300,
     "Tomato___healthy": 300
   },
-  "validate_seconds": 3.03,
-  "validate_files_per_sec": 941.6
+  "validate_seconds": 8.39,
+  "validate_files_per_sec": 339.9
 }

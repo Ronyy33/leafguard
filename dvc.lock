@@ -54,7 +54,7 @@ stages:
       size: 506293
     - path: reports/ingest_metrics.json
       hash: md5
-      md5: 95e13ce5ef3d2e0ce60249e1da83bcb4
+      md5: c5f6c791918263515829cfa88801528d
       size: 109
   validate:
     cmd: python -m src.data.validate
@@ -78,7 +78,7 @@ stages:
       size: 506127
     - path: reports/validation.json
       hash: md5
-      md5: aa11bf81e9e0edce65ca3877abd66ad5
+      md5: 7ba5234b07d385b59f0dff9df2a761d0
       size: 730
   preprocess:
     cmd: python -m src.data.preprocess
@@ -109,7 +109,7 @@ stages:
       nfiles: 5
     - path: reports/preprocess_metrics.json
       hash: md5
-      md5: ce009a23ae64b2c730c861d1103304fd
+      md5: 5726c5b8cf6f4f07d666f5aa2541772f
       size: 202
   train:
     cmd: python -m src.train.train
@@ -125,8 +125,8 @@ stages:
       size: 2052
     - path: src/train/train.py
       hash: md5
-      md5: 78e94c8f4cbcd8a9dbf734dd9689575e
-      size: 7693
+      md5: 40f29624a6ef2372e22e906b9d800636
+      size: 7812
     params:
       params.yaml:
         train:
@@ -148,11 +148,11 @@ stages:
       size: 66
     - path: models/run_id.txt
       hash: md5
-      md5: e19dfae5183c27fd18f07dfc4232ddf1
+      md5: 49888a3f04a210fda40bb434d97a4552
       size: 32
     - path: reports/train_metrics.json
       hash: md5
-      md5: 7a9117f5c420dc7444acccf81a62e062
+      md5: 7717c09d20ada7844e467845ab9d37d8
       size: 120
   evaluate:
     cmd: python -m src.train.evaluate
@@ -168,7 +168,7 @@ stages:
       size: 9170298
     - path: models/run_id.txt
       hash: md5
-      md5: e19dfae5183c27fd18f07dfc4232ddf1
+      md5: 49888a3f04a210fda40bb434d97a4552
       size: 32
     - path: src/train/evaluate.py
       hash: md5
@@ -188,7 +188,7 @@ stages:
       size: 75787
     - path: reports/eval_metrics.json
       hash: md5
-      md5: 64facfa2ed9b456031f7d23f14e1bc28
+      md5: 445f7f75e14af0b26e35c1368ede88b4
       size: 168
   test:
     cmd: mkdir -p reports/tests && python -m pytest 

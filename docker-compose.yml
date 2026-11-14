@@ -59,7 +59,7 @@ services:
 
   trainer:
     <<: *python
-    build: {<<: *pybuild, target: trainer}
+    build: {<<: *pybuild, target: trainer, args: {APP_UID: "${UID:-1000}", APP_GID: "${GID:-1000}"}}
     image: leafguard/trainer:latest
     ports: ["8001:8001"]
     user: "${UID:-1000}:${GID:-1000}"

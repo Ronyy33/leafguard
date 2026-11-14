@@ -2,7 +2,7 @@
   "test_macro_f1": 0.9662,
   "test_accuracy": 0.965,
   "test_min_class_recall": 0.8444,
-  "model_version": 3,
+  "model_version": 4,
   "promoted": true,
   "previous_production_f1": 0.9662
 }

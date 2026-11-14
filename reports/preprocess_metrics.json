@@ -5,6 +5,6 @@
   "test_size": 428,
   "num_classes": 10,
   "image_size": 128,
-  "preprocess_seconds": 3.87,
-  "preprocess_images_per_sec": 736.1
+  "preprocess_seconds": 5.33,
+  "preprocess_images_per_sec": 534.8
 }

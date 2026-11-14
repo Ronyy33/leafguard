@@ -38,7 +38,7 @@
 | AC7 | A worse model is never promoted | gate holds | v1 (F1 0.881) rejected; v2 (0.966) promoted | ✅ |
 | AC8 | Data validation rejects bad files and keeps good ones | bad ≤ 5 % | 1 duplicate dropped, 2,851 kept | ✅ |
 | AC9 | All unit and integration tests pass | 100 % | **46 / 46** | ✅ |
-| AC10 | Full stack starts with one command and E2E tests pass | 100 % | see §5 | see §5 |
+| AC10 | Full stack starts with one command and E2E tests pass | 100 % | **7 / 7**, closed-loop retrain verified | ✅ |
 
 ## 4. Test cases
 The full per-test table is generated on every run at `reports/tests/test_cases.md` (via `scripts/test_report.py` from the JUnit XML).
@@ -95,6 +95,6 @@ These accuracy figures come from random dataset images, most of which were in th
 
 On the dark-photo run, the drift z-score for brightness reached **−25.7**, past the threshold of 3. The accuracy drop on dark photos shows why drift monitoring is needed.
 
-**E2E results:** see [`test_report_e2e.md`](test_report_e2e.md) (filled after `docker compose up`).
+**E2E results:** 7/7 passed. The drift-alert → automatic retrain → hot-swap scenario passed after one defect fix (trainer UID). See [`test_report_e2e.md`](test_report_e2e.md).
 
-**Conclusion:** acceptance criteria AC1–AC9 are met.
+**Conclusion:** all acceptance criteria AC1–AC10 are met.
