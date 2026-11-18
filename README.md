@@ -93,3 +93,8 @@ tests/             unit, integration and e2e tests; samples/ (Git LFS)
 docs/              architecture, HLD, LLD, test plan, user manual, demo script
 reports/           DVC metrics and plots
 ```
+
+
+## Video Explanation Link
+
+https://drive.google.com/file/d/1_m9WngO-XD1fiQsgHUZfWbBaknde7vZ6/view?usp=sharing
